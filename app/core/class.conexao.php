@@ -1,0 +1,118 @@
+<?php
+
+include_once('class.bd.php');
+
+Class Conexao
+{
+	public $tipo;
+	public $conn;
+	public $config;
+
+	public function Conexao($type = 'sql')
+	{
+		$this->config   = new Config();
+		
+		$this->dbhost   = $this->config->config_db['dbHost'];
+		$this->db       = $this->config->config_db['dbDatabase'];
+		$this->user     = $this->config->config_db['dbUser'];
+		$this->password = $this->config->config_db['dbPass'];
+		
+	
+		if ($this->config->config_db['dbType'] == 'sql'){
+			$this->tipo = 'sql';
+		}else if ($this->config->config_db['dbType'] == 'mysql'){
+			$this->tipo = 'mysql';
+		}else{
+			die("Problema na conexão com o BD. Verificar o tipo de conexão configurada.");
+		}
+		$this->connect();
+	}
+	
+	public function connect()
+	{
+		
+		if ($this->tipo == 'sql')
+		{
+			$conninfo = array("Database" => $this->db, "UID" => $this->user, "PWD" => $this->password);
+			$this->conn = sqlsrv_connect($this->dbhost, $conninfo);
+		}else if ($this->tipo == 'mysql')
+		{
+			$this->conn = new MysqliDb($this->dbhost,$this->user,$this->password,$this->db);
+		}
+		
+	}
+	
+	public function select($query,$bool=false)
+	{
+		$sql = $query;
+		//echo $sql;
+		
+		if ($this->tipo == 'sql')
+		{
+			$params = array();
+			$options =array("Scrollable" => SQLSRV_CURSOR_KEYSET);
+			$consulta = sqlsrv_query($this->conn, $sql, $params, $options);
+			$res = array();
+			
+			if (!$bool)
+			{
+				while ($result = sqlsrv_fetch_array($consulta, SQLSRV_FETCH_ASSOC))
+				{
+					$res[] = $result;
+				}
+				return $res;
+			}
+			else
+			{
+				$num = sqlsrv_num_rows($consulta);
+		
+				if ($num > 0)
+					return true;
+				else
+					return false;
+			}
+		
+		
+		}
+		else if ($this->tipo == 'mysql')
+		{
+			//erros aqui: $this->conn->getLastError
+			//count aqui: affected_rows
+			//if (!$bool)
+			//{
+				return $this->conn->query($query);
+			//}	
+			
+		
+		}
+		
+	
+	}
+	
+	public function executa($query)
+	{
+	//para INSERT e UPDATE, sem retorno
+		$sql = $query;
+		
+		if ($this->tipo == 'sql')
+		{
+			$sql = $query;
+
+			//echo $sql;
+			$params = array();
+			$options =array("Scrollable" => SQLSRV_CURSOR_KEYSET);
+			$consulta = sqlsrv_query($this->conn, $sql, $params, $options);
+		
+		
+		}
+		else if ($this->tipo == 'mysql')
+		{
+		
+			return $this->conn->query($query);
+		
+		}
+		
+	
+	}
+}
+?>
