@@ -2,14 +2,18 @@
 # Turn on URL rewriting
 RewriteEngine On
 
+#Force Trailing Slash
+RewriteCond %{REQUEST_URI} /+[^\.]+$
+RewriteRule ^(.+[^/])$ %{REQUEST_URI}/ [R,L]
+
 # If your website begins from a folder e.g localhost/my_project then 
 # you have to change it to: RewriteBase /my_project/
 # If your site begins from the root e.g. example.local/ then
 # let it as it is
-RewriteBase /yourfolder
+RewriteBase /phpfun
 
 # Protect application and system files from being viewed when the index.php is missing
-RewriteCond $1 ^(app|yourfolder)
+RewriteCond $1 ^(app|phpfun)
 
 # Rewrite to index.php/access_denied/URL
 RewriteRule ^(.*)$ index.php/access_denied/$1 [PT,L]
