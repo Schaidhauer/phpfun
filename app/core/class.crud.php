@@ -54,15 +54,26 @@ Class CrudBootstrap{
 		{
 			if ($this->campos)
 			{
-				foreach ($this->campos as $campo => $v){
-					$post[$v['name']] = $_POST[$v['name']];
+				foreach ($this->campos as $campo => $v)
+				{
+					//se o campo estiver no array de campos como hidden é sinal de campo custom, como controle de datas e etc
+					//Entao, verificamos se este campo está em branco, se tiver, nem envia pro post.
+					//Exemplo de campos de data de criação, só vai fazer insert do valor na hora da criação e não mais na edição da linha.
+					if ($v['type'] != 'hidden')
+						$post[$v['name']] = @$_POST[$v['name']];
+					else
+					{
+						if (@$_POST[$v['name']] != '')
+							$post[$v['name']] = @$_POST[$v['name']];
+					}
+						
 				}
 			}
-			/*
-			print_r($_POST);
-			print_r($post);
-			die();
-			*/
+			
+			//print_r($_POST);
+			//print_r($post);
+			//die();
+			
 			if (@$_POST['crud'] == 'edit')
 			{
 				$this->editCRUD($_POST['id'],$post);
@@ -135,35 +146,52 @@ Class CrudBootstrap{
 		
 		if ($id > 0){
 			$crud = $this->getCRUDInfo($this->form_dbtable,$id);
-			echo "<form action='../' method='post' class='navbar-form navbar-left'>";
+			if ($crud)
+			{
+				echo "<form action='../' method='post' class='navbar-form navbar-left' style='width: 100%;'>";
 
-				echo "<input type='hidden' value='edit' name='crud'/>";
-				echo "<input type='hidden' value='".$id."' name='id'/>";
-				
-				echo "<table class='table'>";
-					foreach ($this->campos as $campo)
-					{ 
-						echo "<tr>";
+					echo "<input type='hidden' value='edit' name='crud'/>";
+					echo "<input type='hidden' value='".$id."' name='id'/>";
+					
+					echo "<table class='table'>";
+						foreach ($this->campos as $campo)
+						{ 
+							
+							
+							if ($campo['type'] == 'password'){
+								$e = new Encryption();
+								$value_text = $e->decode($crud[$campo['name']]);
+							}else{
+								$value_text = $crud[$campo['name']];
+							}
 						
-						if ($campo['type'] == 'password'){
-							$e = new Encryption();
-							$value_text = $e->decode($crud[$campo['name']]);
-						}else{
-							$value_text = $crud[$campo['name']];
+							if ($campo['type']!='hidden')
+							{
+								echo "<tr>";
+									echo "<td><label for='sel1'>".$campo['label'].":</label></td>";
+									echo "<td>".$this->formGeraElemento($campo,$value_text)."</td>";
+									//echo "<td><input type='".$campo[2]."' name='".$campo[1]."' class='form-control' value='".$value_text."' style='width:".$campo[3]."px'/></td>";
+								echo "</tr>";
+							}
+							else
+							{
+								$hiddens[] = $this->formGeraElemento($campo,'');
+							}
 						}
-					
-						echo "<td><label for='sel1'>".$campo['label'].":</label></td>";
-						echo "<td>".$this->formGeraElemento($campo,$value_text)."</td>";
-						//echo "<td><input type='".$campo[2]."' name='".$campo[1]."' class='form-control' value='".$value_text."' style='width:".$campo[3]."px'/></td>";
 						
+						echo "<tr style='text-align: center;'>";
+							echo "<td colspan='2'><button type='button' onclick=\"location.href='../';\"  class='btn btn-default'>Cancelar</button> <button type='submit' class='btn btn-default'>Salvar</button></td>";
 						echo "</tr>";
-					}
-					
-					echo "<tr style='text-align: center;'>";
-						echo "<td colspan='2'><button type='button' onclick=\"location.href='../';\"  class='btn btn-default'>Cancelar</button> <button type='submit' class='btn btn-default'>Salvar</button></td>";
-					echo "</tr>";
-				echo "</table>";
-			echo "</form>";
+					echo "</table>";
+					if ($hiddens)
+						foreach($hiddens as $h)
+							echo $h;
+				echo "</form>";
+			}
+			else
+			{
+				echo "ID não encontrado.";
+			}
 		}else{
 			echo "ID não informado.";
 		}
@@ -174,20 +202,33 @@ Class CrudBootstrap{
 		
 		echo "<h3>Adicionando ".$this->form_title."</h3>";
 		
-			echo "<form action='../' method='post' class='navbar-form navbar-left' style='margin-left:auto;margin-right:auto;'>";
+			echo "<form action='../' method='post' class='navbar-form navbar-left' style='margin-left:auto;margin-right:auto;width: 100%;'>";
 				echo "<input type='hidden' value='add' name='crud'/>";
 				echo "<table class='table'>";
 					foreach ($this->campos as $campo)
 					{
-						echo "<tr>";
-							echo "<td>".$campo['label'].":</td>";
-							echo "<td>".$this->formGeraElemento($campo,'')."</td>";
-						echo "</tr>";
+						if ($campo['type']!='hidden')
+						{
+							echo "<tr>";
+								echo "<td>".$campo['label'].":</td>";
+								echo "<td>".$this->formGeraElemento($campo,'')."</td>";
+							echo "</tr>";
+						}
+						else
+						{
+							$hiddens[] = $this->formGeraElemento($campo,'');
+						}
+						
 					}
 					echo "<tr style='text-align: center;'>";
 						echo "<td colspan='2'><button type='button' onclick=\"location.href='../';\"  class='btn btn-default'>Cancelar</button> <button type='submit' class='btn btn-default'>Adicionar</button></td>";
 					echo "</tr>";
 				echo "</table>";
+				
+				if ($hiddens)
+					foreach($hiddens as $h)
+						echo $h;
+						
 			echo "</form>";
 		
 	}
@@ -255,10 +296,22 @@ Class CrudBootstrap{
 					//print_r($this->historyFiltro);
 						foreach ($this->campos as $campo)
 						{
-							echo "<tr>";
-								echo "<td style='text-align:right;'>".$campo['label'].":</td>";
-								echo "<td>".$this->formGeraElemento($campo,$this->historyFiltro[$campo['name']],true)."</td>";
-							echo "</tr>";
+							if ($campo['type']!='hidden')
+							{
+							
+								echo "<tr>";
+									echo "<td style='text-align:right;' title='".$campo['type']."'>".$campo['label'].":</td>";
+									echo "<td>".$this->formGeraElemento($campo,$this->historyFiltro[$campo['name']],true)."</td>";
+								echo "</tr>";
+							
+							}
+							else
+							{
+								
+								//$hiddens[] = $this->formGeraElemento($campo,$this->historyFiltro[$campo['name']],true);
+								
+							}
+							
 						}
 						
 					
@@ -266,6 +319,10 @@ Class CrudBootstrap{
 							echo "<td colspan=2><input class='btn btn-info' type='button' id='btnFiltroClear' value='Limpar'/> <input class='btn btn-success' type='submit' value='Filtrar'/></td>";
 					echo "</tr>";
 				echo "</table>";
+				
+				//foreach(@$hiddens as $h)
+				//	echo $h;
+					
 			echo "</form>";
 		echo "</div>";
 	}
@@ -279,13 +336,23 @@ Class CrudBootstrap{
 	}
 	
 	public function formGeraElemento($campo,$value,$primeiroBranco=false){
+	
+		if (@$campo['size'] > 0)
+			$size = $campo['size']."px";
+		else
+			$size = "100%";
+			
 		if (($campo['type'] == 'text') || ($campo['type'] == 'password')){
 		
-			return "<input type='".$campo['type']."' name='".$campo['name']."' value='".$value."' class='form-control' style='width:".$campo['size']."px' autocomplete='off'/>";
+			return "<input type='".$campo['type']."' name='".$campo['name']."' value='".$value."' class='form-control ".@$campo['class']."' style='width:".$size."' autocomplete='off'/>";
+		
+		}else if ($campo['type'] == 'hidden'){
+		
+			return "<input type='hidden' name='".$campo['name']."' value='".$value."' autocomplete='off'/>";
 		
 		}else if($campo['type'] == 'textarea'){
 		
-			return "<textarea name='".$campo['name']."' class='form-control' style='width:".$campo['size']."px'/>".$value."</textarea>";
+			return "<textarea name='".$campo['name']."' class='form-control ".@$campo['class']."' style='width:".$size."'/>".$value."</textarea>";
 		
 		}else if($campo['type'] == 'select'){
 		
@@ -297,25 +364,29 @@ Class CrudBootstrap{
 				
 			$return_sel = "";
 			
-			$return_sel .= "<select name='".$campo['name']."' style='width:".@$campo['size']."px' class='form-control'>";
+			$return_sel .= "<select name='".$campo['name']."' style='width:".$size."' class='form-control ".@$campo['class']."'>";
 			
 			if ($primeiroBranco)
 				$return_sel .= "<option value='' selected>&nbsp;</option>";
 				
-			foreach ($sel as $v => $s){
-				//print_r($s);
-				if (!is_array($campo['options'])){
-					if ($value == $s['id'])
-						$return_sel .= "<option value='".$s['id']."' selected>".$s['nome']."</option>";
-					else
-						$return_sel .= "<option value='".$s['id']."'>".$s['nome']."</option>";
-				}else{
-					if ($value == $v)
-						$return_sel .= "<option value='".$v."' selected>".$s."</option>";
-					else
-						$return_sel .= "<option value='".$v."'>".$s."</option>";
+			if ($sel)
+			{
+				foreach ($sel as $v => $s)
+				{
+					//print_r($s);
+					if (!is_array($campo['options'])){
+						if ($value == $s['id'])
+							$return_sel .= "<option value='".$s['id']."' selected>".$s['nome']."</option>";
+						else
+							$return_sel .= "<option value='".$s['id']."'>".$s['nome']."</option>";
+					}else{
+						if ($value == $v)
+							$return_sel .= "<option value='".$v."' selected>".$s."</option>";
+						else
+							$return_sel .= "<option value='".$v."'>".$s."</option>";
+					}
+				
 				}
-			
 			}
 			$return_sel .= "</select>";
 			
@@ -330,15 +401,15 @@ Class CrudBootstrap{
 		$sql = "UPDATE ".$this->form_dbtable." SET ";
 		
 		foreach ($post as $p => $v){
-			if (($p == 'password')||($p == 'senha')){
-					
-			//$converter = new Encryption;
-			//$encoded = $converter->encode($v);
-			$e = new Encryption();
-			$encoded = $e->encode($v);
+			if (($p == 'password')||($p == 'senha'))
+			{
+				$e = new Encryption();
+				$encoded = $e->encode($v);
 				
 				$sql .= $p."='".$encoded."',";
-			}else{
+			}
+			else
+			{
 				$sql .= $p."='".$v."',";
 			}
 			
@@ -439,6 +510,7 @@ Class CrudBootstrap{
 		$sql = "INSERT INTO ".$this->form_dbtable." (".$colunas.") VALUES (".$valores.");";
 		
 		//echo $sql;
+		//die();
 		
 		$this->bdconn->executa($sql);
 	}
