@@ -58,12 +58,12 @@ Class Html{
 	
 	public function addCSS($cssfile)
 	{
-		$this->customCSS .= '<link href="'.$cssfile.'" rel="stylesheet">';
+		$this->customCSS .= '<link href="'.$this->path."/".$cssfile.'" rel="stylesheet">';
 	}
 	
 	public function addJS($jsfile)
 	{
-		$this->customJS .= '<script src="'.$jsfile.'"></script>';
+		$this->customJS .= '<script src="'.$this->path."/".$jsfile.'"></script>';
 	}
 	
 	public function head()
