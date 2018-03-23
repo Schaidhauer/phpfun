@@ -1,6 +1,7 @@
 <?php
 
-include_once('class.bd.php');
+//include_once('class.bd.php');
+include_once('class.mysqli_v2.php');
 
 Class Conexao
 {
@@ -37,7 +38,9 @@ Class Conexao
 			$this->conn = sqlsrv_connect($this->dbhost, $conninfo);
 		}else if ($this->tipo == 'mysql')
 		{
-			$this->conn = new MysqliDb($this->dbhost,$this->user,$this->password,$this->db);
+			//$this->conn = new MysqliDb($this->dbhost,$this->user,$this->password,$this->db);
+			$this->conn = new MysqliDb_v2($this->dbhost,$this->user,$this->password,$this->db);
+			
 		}
 		
 	}
@@ -80,7 +83,10 @@ Class Conexao
 			//count aqui: affected_rows
 			//if (!$bool)
 			//{
-				return $this->conn->query($query);
+				if ($this->conn->query($query))
+					return $this->conn->fetch();
+				else
+					die ("ERRO MYSQL");
 			//}	
 			
 		
@@ -107,7 +113,7 @@ Class Conexao
 		}
 		else if ($this->tipo == 'mysql')
 		{
-		
+			//echo $query;
 			return $this->conn->query($query);
 		
 		}
