@@ -76,10 +76,12 @@ Class Core{
 			$canRedir = true;
 		
 		
-		if ((file_exists($file) == true) && (file_exists($control) == true) && $canRedir)
+		if ((file_exists($file) == true) && $canRedir)
 		{
 			require_once($file);
-			require_once($control);
+			
+			if (file_exists($control) == true)
+				require_once($control);
 			
 			
 			$page = new $this->cmd[0];
@@ -100,16 +102,26 @@ Class Core{
 			
 			
 		}else{
-			//Aqui tem que dar um redir para o metodo padrao
-			//header("Location: ".$this->config->config['protocolo']."://".$_SERVER['HTTP_HOST'].$this->config->config['systemFolder']."/".$this->config->config['defaultClass']."/"); /* Redirect browser */
-			//exit();
 			
-			$this->html = new HTML($this->config->config_menu,$this->config->config_html,$this->system_path);
+			//se nao for enviado nada, vai pro metodo padrao
+			if ($this->cmd[0] == '')
+			{
+				//Aqui tem que dar um redir para o metodo padrao
+				header("Location: ".$this->config->config['protocolo']."://".$_SERVER['HTTP_HOST'].$this->config->config['systemFolder']."/".$this->config->config['defaultClass']."/"); /* Redirect browser */
+				exit();
+			}
+			else
+			{
+				//Se for algo que nao existe, pagina de erro
+				$this->html = new HTML($this->config->config_menu,$this->config->config_html,$this->system_path);
+				
+				$this->html->head();
+				$this->html->bodyBeginBlank();
+				$this->html->mensagemErro();
+				$this->html->bodyEndBlank(@$jquery);
+				
+			}
 			
-			$this->html->head();
-			$this->html->bodyBeginBlank();
-			$this->html->mensagemErro();
-			$this->html->bodyEndBlank(@$jquery);
 			
 		}
 		
