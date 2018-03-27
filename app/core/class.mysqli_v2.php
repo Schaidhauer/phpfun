@@ -41,6 +41,22 @@ class MysqliDb_v2
 	 * $query = "select * from table"; // or insert, update, delete query
 	 * $result = $db->query($query);
 	 */
+	public function insert($query)
+	{
+		$this->result = $this->connection->query($query);
+		return mysqli_insert_id($this->connection);
+	}
+
+	/**
+	 * Run select, insert, update or delete query
+	 * A successful query will return $result as true
+	 * For select query after query() run fetch() to fetch result rows
+	 * @return result object returned, contains details like $result->num_rows
+	 * @param $query a query to be run
+	 * example usage
+	 * $query = "select * from table"; // or insert, update, delete query
+	 * $result = $db->query($query);
+	 */
 	public function query($query){
 		$this->result = $this->connection->query($query);
 		return $this->result;
