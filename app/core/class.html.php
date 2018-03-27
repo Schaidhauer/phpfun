@@ -92,9 +92,6 @@ Class Html{
 			<!-- Custom Fonts -->
 			<link href="'.$this->path.'/assets/font-awesome/css/font-awesome.min.css" rel="stylesheet" type="text/css">
 			
-			<!-- Select2 -->
-			<link href="'.$this->path.'/assets/js/select2/css/select2.min.css" rel="stylesheet" type="text/css">
-			
 			<!-- Custom CSS-->
 			'.$this->customCSS.'
 
@@ -212,9 +209,6 @@ Class Html{
 
 		<!-- Loader for Google graphs -->
 		<script src="'.$this->path.'/assets/js/loader.js"></script>
-		
-		<!-- Select2 JS -->
-		<script src="'.$this->path.'/assets/js/select2/js/select2.min.js"></script>
 		
 		<!-- Custom JS-->
 		'.$this->customJS.'
@@ -428,8 +422,7 @@ Class Html{
 			$('#searchInput').click(function() {
 				$(this).val('');
 			});
-			
-			$('.select2').select2();
+		
 		
 			".@$jquery."
 			

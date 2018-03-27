@@ -120,18 +120,5 @@ Class Conexao
 		
 	
 	}
-	
-	public function insert($query)
-	{
-		if ($this->tipo == 'mysql')
-		{
-			//echo $query;
-			//retorna o lastid
-			return $this->conn->insert($query);
-		
-		}
-		
-	
-	}
 }
 ?>
