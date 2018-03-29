@@ -221,11 +221,11 @@ Class CrudBootstrap{
 								*/
 								$reltemp = $this->getColumnCRUDInfoMulti($campo['idFilhos'],$campo['tableRel'],$campo['idPai'],$id);
 								//print_r($reltemp);
-								foreach($reltemp as $r)
-								{
-									$value_text[] = $r[$campo['idFilhos']];
-								}
-								//$value_text = $reltemp;
+								//foreach($reltemp as $r)
+								//{
+								//	$value_text[] = $r[$campo['idFilhos']];
+								//}
+								$value_text = $reltemp;
 								
 							}
 							//print_r($reltemp[0]);
@@ -305,7 +305,6 @@ Class CrudBootstrap{
 		
 		if ($res)
 		{
-			
 			if ($this->paginarTotal['COUNT(id)'] > 0)
 				echo "<p style='clear: both;'> Mostrando ".sizeof($res)." registros de ".$this->paginarTotal['COUNT(id)'].".</p>";
 			else
@@ -331,7 +330,22 @@ Class CrudBootstrap{
 						foreach ($colunas as $cr => $vr)
 						{
 							if (is_array($vr))
-								echo "<td style='color:#000;'>".$this->getColumnCRUDInfo($vr['return'],$vr['table'],$v[$vr['field']])."</td>";
+							{
+								if (isset($vr['relTable']))
+								{
+									$rels_table = array();
+									$rels = $this->getColumnCRUDInfoMulti($vr['field'],$vr['relTable'],$vr['fieldPai'],$v['id']);
+									
+									foreach ($rels as $r)
+									{
+										$rels_table[] = $this->getColumnCRUDInfo($vr['return'],$vr['table'],$r);
+									}
+									$rtb = implode(",",$rels_table);
+									echo "<td style='color:#000;'>".$rtb."</td>";
+								}
+								else	
+									echo "<td style='color:#000;'>".$this->getColumnCRUDInfo($vr['return'],$vr['table'],$v[$vr['field']])."</td>";
+							}
 							else
 								echo "<td style='color:#000;'>".$v[$vr]."</td>";
 						}
@@ -859,8 +873,11 @@ Class CrudBootstrap{
 		
 		$res = $this->bdconn->select($sql);
 		
-		//return utf8_encode($res[0][$col]);
-		return $res;
+		foreach($res as $r)
+		{
+			$values[] = $r[$col];
+		}
+		return $values;
 	}
 	
 	public function getColumnCRUDInfo($col,$table,$id)
