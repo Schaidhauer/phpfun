@@ -1,0 +1,44 @@
+.avisoFun{
+	width: 600px;
+	margin-right: auto;
+	margin-left: auto;
+	margin-top: 100px;
+	text-align: center;
+	border: 1px solid #B64D4D;
+	padding: 5px;
+	background-color: #DF5757;
+	color: #fff;
+
+}
+
+.loginFun{
+	width: 365px;
+	height: 230px;
+	background-color: #fff;
+	margin-left: auto;
+	margin-right: auto;
+}
+.loginFun h3{
+	text-align: center;
+	background-color: #465464;
+	color: #fff;
+	height: 50px;
+	padding-top: 12px;
+}
+
+.searchFun {
+	
+}
+
+.searchFun input {
+	width: 192px;
+	background-color: #424242;
+	border: 0px solid;
+	color: #B1B1B1;
+	padding: 5px;
+}
+
+.funpanelclicable a{
+	color: #fff;
+	
+}
