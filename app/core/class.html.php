@@ -85,6 +85,7 @@ Class Html{
 
 			<!-- Custom CSS -->
 			<link href="'.$this->path.'/assets/css/sb-admin.css" rel="stylesheet">
+			<link href="'.$this->path.'/assets/css/logfun.css" rel="stylesheet">
 
 			<!-- Morris Charts CSS -->
 			<link href="'.$this->path.'/assets/css/plugins/morris.css" rel="stylesheet">
@@ -92,8 +93,9 @@ Class Html{
 			<!-- Custom Fonts -->
 			<link href="'.$this->path.'/assets/font-awesome/css/font-awesome.min.css" rel="stylesheet" type="text/css">
 			
-			<!-- Select2 -->
-			<link href="'.$this->path.'/assets/js/select2/css/select2.min.css" rel="stylesheet" type="text/css">
+			<!-- PLUGINS -->
+			<link href="'.$this->path.'/assets/plugins/select2/css/select2.min.css" rel="stylesheet" type="text/css">
+			<link href="'.$this->path.'/assets/plugins/datepicker/css/bootstrap-datepicker.min.css" rel="stylesheet" type="text/css">
 			
 			<!-- Custom CSS-->
 			'.$this->customCSS.'
@@ -213,8 +215,9 @@ Class Html{
 		<!-- Loader for Google graphs -->
 		<script src="'.$this->path.'/assets/js/loader.js"></script>
 		
-		<!-- Select2 JS -->
-		<script src="'.$this->path.'/assets/js/select2/js/select2.min.js"></script>
+		<!-- PLUGINS -->
+		<script src="'.$this->path.'/assets/plugins/select2/js/select2.min.js"></script>
+		<script src="'.$this->path.'/assets/plugins/datepicker/js/bootstrap-datepicker.js"></script>
 		
 		<!-- Custom JS-->
 		'.$this->customJS.'
@@ -400,8 +403,8 @@ Class Html{
 	
 	}
 	
-	function bodyEnd($jquery){
-		
+	function bodyEnd($jquery)
+	{
 		echo "
 		
 					</div>
@@ -419,8 +422,8 @@ Class Html{
 	
 	}
 	
-	function jQueryReady($jquery){
-	
+	function jQueryReady($jquery)
+	{
 		echo "
 		<script>
 		$( document ).ready(function() {
@@ -430,11 +433,43 @@ Class Html{
 			});
 			
 			$('.select2').select2();
+			$('.datepicker').datepicker({
+				format: 'dd/mm/yyyy',
+				language: 'pt-BR',
+				
+				pickerPosition: 'top-left',
+				autoclose: true
+			});
 		
 			".@$jquery."
 			
 		});
 		</script>
+		";
+	}
+	
+	function createDashPanel($cor = 'default',$number=0,$content='',$href='#')
+	{
+	
+		return "
+		
+			<div class='panel panel-".$cor." funpanelclicable' style='margin-bottom: 5px;'>
+				
+					<div class='panel-heading'>
+						<a href='".$href."'>
+							<div class='row'>
+								<div class='col-xs-12' style='text-align:center;'>
+									<div class='huge' style='text-align: center;'>".$number."</div>
+									<span class='badge' style='background-color:#fff;color:#575757;'>
+										".$content." 													
+									</span>
+								</div>
+							</div>
+						</a>
+					</div>
+				
+			</div>
+		
 		";
 	
 	}
