@@ -20,6 +20,7 @@ $crud->criaFormAdd();
 require_once("class.config.php");
 require_once("class.ldap.php");
 require_once("class.password.php");
+require_once("class.help.php");
 
 Class CrudBootstrap{
 
@@ -45,6 +46,7 @@ Class CrudBootstrap{
 	
 		$this->config        = new Config();
 		$this->core          = new Core(false);
+		$this->help          = new Help();
 	
 		if ($formconfig != '')
 		{
@@ -84,9 +86,16 @@ Class CrudBootstrap{
 					//Exemplo de campos de data de criação, só vai fazer insert do valor na hora da criação e não mais na edição da linha.
 					if ($v['type'] != 'hidden')
 					{
-						if (!is_array(@$_POST[$v['name']]))
+						if ((!is_array(@$_POST[$v['name']])) && (@$v['type'] != 'selectRel'))
+						//if (!is_array(@$_POST[$v['name']]))
 						{
-							$post[$v['name']] = @$_POST[$v['name']];
+							if (@$v['post_bd_mask'] != '')
+							{
+								$post_bd_mask = $this->help->fixDate($v['post_bd_mask'],$_POST[$v['name']]);
+								$post[$v['name']] = $post_bd_mask;
+							}
+							else
+								$post[$v['name']] = @$_POST[$v['name']];
 						}
 						else
 						{
@@ -95,7 +104,7 @@ Class CrudBootstrap{
 								'tableRel'=>$v['tableRel'],
 								'idPai'=>$v['idPai'],
 								'idFilhos'=>$v['idFilhos'],
-								'values'=>$_POST[$v['name']]
+								'values'=>@$_POST[$v['name']]
 								);
 						}
 					}
@@ -142,11 +151,43 @@ Class CrudBootstrap{
 				{
 					if ($v <> '')
 					{
-						if (substr($p,0,2) == 'id')
-							$w[] = " ".$p." = '".$v."' ";
+						if (!is_array($v))
+						{
+							if (substr($p,0,2) == 'id')
+								$w[] = " ".$p." = '".$v."' ";
+							else
+								$w[] = " ".$p." LIKE '%".$v."%' ";
+						}
 						else
-							$w[] = " ".$p." LIKE '%".$v."%' ";
-						
+						{
+							
+							$rel_join = @implode(',',$v['values']);
+							if ($rel_join != '')
+							{
+								$relacionamentos = " SELECT ".$v['idPai']." FROM ".$v['tableRel']." WHERE ".$v['idFilhos']." IN (".$rel_join.") ";
+								//echo $relacionamentos;
+								$res = $this->bdconn->select($relacionamentos);
+								
+								//existe relacionamentos
+								if ($res)
+								{
+									//print_r($res);
+									
+									
+									//o history dos componentes ainda nao funcionam
+									
+									$rels = implode(',',$res[0]);
+									//agrega os IDs do pai na consulta principal
+									$w[] = " id IN (".$rels.") ";
+								}
+								else
+								{
+									//se não tiver nenhum dos relcionamentos, faz add um where fake para nao trazer nenhum.
+									$w[] = " id IN (-1) ";
+								
+								}
+							}
+						}
 					}
 				}
 				if (sizeof(@$w) > 0)
@@ -302,6 +343,8 @@ Class CrudBootstrap{
 		$res = $this->getList("*");
 		$this->botaoCriar();
 		
+		$path = $this->core->system_path;
+		
 		
 		if ($res)
 		{
@@ -320,7 +363,8 @@ Class CrudBootstrap{
 				echo "</tr>";
 				foreach ($res as $v)
 				{
-					$btn = "<a href='edit/".$v['id']."'><span class='badge' style='background-color:#41B446' title='Editar'>
+					$link_edit = $path."/".$this->form_dbtable."/edit/".$v['id'];
+					$btn = "<a href='".$link_edit."'><span class='badge' style='background-color:#41B446' title='Editar'>
 						<span class='glyphicon glyphicon-list-alt' aria-hidden='true'></span> </span></a>";
 					
 					
@@ -336,12 +380,21 @@ Class CrudBootstrap{
 									$rels_table = array();
 									$rels = $this->getColumnCRUDInfoMulti($vr['field'],$vr['relTable'],$vr['fieldPai'],$v['id']);
 									
-									foreach ($rels as $r)
+									if (sizeof($rels) > 0)
 									{
-										$rels_table[] = $this->getColumnCRUDInfo($vr['return'],$vr['table'],$r);
+										foreach ($rels as $r)
+										{
+											$rels_table[] = $this->getColumnCRUDInfo($vr['return'],$vr['table'],$r);
+										}
+										$rtb = implode(",",$rels_table);
 									}
-									$rtb = implode(",",$rels_table);
+									else
+									{
+										$rtb = '';
+									}
+									
 									echo "<td style='color:#000;'>".$rtb."</td>";
+									
 								}
 								else	
 									echo "<td style='color:#000;'>".$this->getColumnCRUDInfo($vr['return'],$vr['table'],$v[$vr['field']])."</td>";
@@ -519,10 +572,17 @@ Class CrudBootstrap{
 						{
 							if ($campo['type']!='hidden')
 							{
-							
+								
+								//print_r($this->historyFiltro[$campo['name']]);
+								
 								echo "<tr>";
 									echo "<td style='text-align:right;' title='".$campo['type']."'>".$campo['label'].":</td>";
-									echo "<td>".$this->formGeraElemento($campo,$this->historyFiltro[$campo['name']],true)."</td>";
+									
+									if ($campo['type'] != 'selectRel')
+										echo "<td>".$this->formGeraElemento($campo,$this->historyFiltro[$campo['name']],true)."</td>";
+									else
+										echo "<td>".$this->formGeraElemento($campo,$this->historyFiltro[$campo['name']]['values'],false)."</td>";
+										
 								echo "</tr>";
 							
 							}
@@ -619,6 +679,11 @@ Class CrudBootstrap{
 		else if($campo['type'] == 'selectRel')
 		{
 			//print_r($value);
+			//echo "<hr/>DEBUG:";
+			//echo "<p>values: [".$value."]";
+			//print_r($value);
+			//echo "<hr/>";
+			
 			if (!is_array($campo['options']))
 				$sel = $this->formGetSelectContent($campo['options']);
 			else
@@ -629,7 +694,7 @@ Class CrudBootstrap{
 			
 			$return_sel .= "<select name='".$campo['name']."[]' style='width:".$size."' class='form-control ".@$campo['class']." select2' multiple='multiple'>";
 			
-			if ($primeiroBranco)
+			if (($primeiroBranco) && ($value == ''))
 				$return_sel .= "<option value='' selected>&nbsp;</option>";
 			
 			$options_rel = array();
@@ -654,6 +719,7 @@ Class CrudBootstrap{
 									$return_sel .= "<option value='".$s['id']."'>".$s['nome']."</option>";
 							}
 							*/
+							//print_r($value);
 							
 							if (in_array($s['id'], $value))
 								$return_sel .= "<option value='".$s['id']."' selected>".$s['nome']."</option>";
@@ -705,6 +771,7 @@ Class CrudBootstrap{
 			}
 			else
 			{
+				//if ((is_array($v)) || (@$v['type'] == 'selectRel'))
 				if (is_array($v))
 				{//se for um array, é um sinal que é de um campo multiplo, que precisa de uma tabela de relacionamento
 					$contem_relacionamentos = true;
@@ -808,8 +875,10 @@ Class CrudBootstrap{
 		//die();
 		
 		
-		foreach ($post as $p => $v){
-			
+		foreach ($post as $p => $v)
+		{
+			//print_r($p);
+			//echo "<hr/>";
 			if (($p == 'password')||($p == 'senha')){
 				//$converter = new Encryption;
 				//$encoded = $converter->encode($v);
@@ -818,16 +887,24 @@ Class CrudBootstrap{
 				
 				$colunas .= $p.",";
 				$valores .= "'".$encoded."',";
-			}else{
+			}
+			else
+			{
 			
+				//if ((is_array($v)) || (@$v['type'] == 'selectRel'))
 				if (is_array($v))
 				{
 					//se for um array, é um sinal que é de um campo multiplo, que precisa de uma tabela de relacionamento
-					$contem_relacionamentos = true;
 					
-					foreach ($v['values'] as $i)
+					
+					if (sizeof($v['values']) > 0)
 					{
-						$rel_inserts[] = "INSERT INTO ".$v['tableRel']." (".$v['idFilhos'].",".$v['idPai'].") VALUES (".$i.",";
+						$contem_relacionamentos = true;
+						
+						foreach ($v['values'] as $i)
+						{
+							$rel_inserts[] = "INSERT INTO ".$v['tableRel']." (".$v['idFilhos'].",".$v['idPai'].") VALUES (".$i.",";
+						}
 					}
 					
 				}
@@ -873,9 +950,18 @@ Class CrudBootstrap{
 		
 		$res = $this->bdconn->select($sql);
 		
-		foreach($res as $r)
+		//echo $sql;
+		//print_r($res);
+		$values = array();
+		
+		if ($res)
 		{
-			$values[] = $r[$col];
+			//print_r($res);
+			foreach($res as $r)
+			{
+				$values[] = $r[$col];
+			}
+			
 		}
 		return $values;
 	}
