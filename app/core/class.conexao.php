@@ -9,24 +9,47 @@ Class Conexao
 	public $conn;
 	public $config;
 
-	public function Conexao($type = 'sql')
+	public function Conexao($type = '',$config = '')
 	{
-		$this->config   = new Config();
+		//se inputar os valores, é sinal que é custom, NAO baseado na config geral do phpfun.
 		
-		$this->dbhost   = $this->config->config_db['dbHost'];
-		$this->db       = $this->config->config_db['dbDatabase'];
-		$this->user     = $this->config->config_db['dbUser'];
-		$this->password = $this->config->config_db['dbPass'];
+		if ($type == '')
+		{
+			$this->config   = new Config();
 		
+			$this->dbhost   = $this->config->config_db['dbHost'];
+			$this->db       = $this->config->config_db['dbDatabase'];
+			$this->user     = $this->config->config_db['dbUser'];
+			$this->password = $this->config->config_db['dbPass'];
+			
 	
-		if ($this->config->config_db['dbType'] == 'sql'){
-			$this->tipo = 'sql';
-		}else if ($this->config->config_db['dbType'] == 'mysql'){
-			$this->tipo = 'mysql';
-		}else{
-			die("Problema na conexão com o BD. Verificar o tipo de conexão configurada.");
+			if ($this->config->config_db['dbType'] == 'sql'){
+				$this->tipo = 'sql';
+			}else if ($this->config->config_db['dbType'] == 'mysql'){
+				$this->tipo = 'mysql';
+			}else{
+				die("Problema na conexão com o BD. Verificar o tipo de conexão configurada.");
+			}
+			$this->connect();
 		}
-		$this->connect();
+		else
+		{
+			
+			$this->dbhost   = $config['dbHost'];
+			$this->db       = $config['dbDatabase'];
+			$this->user     = $config['dbUser'];
+			$this->password = $config['dbPass'];
+			
+			if ($type == 'sql'){
+				$this->tipo = 'sql';
+			}else if ($type == 'mysql'){
+				$this->tipo = 'mysql';
+			}else{
+				die("Problema na conexão com o BD. Verificar o tipo de conexão configurada.");
+			}
+			$this->connect();
+		
+		}
 	}
 	
 	public function connect()
@@ -86,7 +109,7 @@ Class Conexao
 				if ($this->conn->query($query))
 					return $this->conn->fetch();
 				else
-					die ("ERRO MYSQL");
+					die ("ERRO MYSQL: {".$query."}");
 			//}	
 			
 		
