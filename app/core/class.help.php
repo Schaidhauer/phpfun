@@ -28,6 +28,18 @@ Class Help{
 		return str_replace("\n",'<br />',htmlentities(str_replace('<br />',"\n",$string)));
 	}
 	
+	function fixDate($format,$dt)
+	{
+		if ($format == 'yyyy-mm-dd')
+		{
+			return $this->dtBRtoEN($dt);
+		}
+		else if ($format == 'dd/mm/yyyy')
+		{
+			return $this->dtENtoBR($dt);
+		}
+	}
+	
 	function dtBRtoEN($data){
         $data1 = explode("/",$data);
         $data = $data1[2]."-".$data1[1]."-".$data1[0];
@@ -119,6 +131,32 @@ Class Help{
 		  return true;
 		else // false
 		  return false;
+	}
+	
+	function isValidXml($content)
+	{
+		if ($content != "")
+		{
+			$content = trim($content);
+			if (empty($content)) {
+				return false;
+			}
+			//html go to hell!
+			if (stripos($content, '<!DOCTYPE html>') !== false) {
+				return false;
+			}
+			//echo "START: ".$content[0];
+
+			libxml_use_internal_errors(true);
+			simplexml_load_string($content);
+			$errors = libxml_get_errors();          
+			libxml_clear_errors();  
+			//print_r($errors);
+			return empty($errors);
+		}
+		else{
+			return false;
+		}
 	}
 	
 }
