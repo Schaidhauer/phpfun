@@ -128,12 +128,14 @@ Class CrudBootstrap{
 			if (@$_POST['crud'] == 'edit')
 			{
 				$this->editCRUD($_POST['id'],$post);
-				echo "<p class='banner-information'>Editado com sucesso!</p>";
+				//echo "<p class='banner-information'>Editado com sucesso!</p>";
+				echo "<div class='alert alert-success' style='text-align: center;'>Editado com sucesso!</div>";
 			}
 			else if (@$_POST['crud'] == 'add')
 			{
 				$this->insertCRUD($post);
-				echo "<p class='banner-information'>Criado com sucesso!</p>";
+				//echo "<p class='banner-information'>Criado com sucesso!</p>";
+				echo "<div class='alert alert-success' style='text-align: center;'>Criado com sucesso!</div>";
 			}
 			else if (@$_POST['crud'] == 'login')
 			{
@@ -196,14 +198,71 @@ Class CrudBootstrap{
 					$where = implode(' AND ',$w);
 					
 					$this->setListWhere($where);
+					
+					$_SESSION['search'][$this->form_dbtable]['where'] = $where;
+					$_SESSION['search'][$this->form_dbtable]['history'] = $this->historyFiltro;
+					
+				}
+				else
+				{
+					//se o filtro for em branco, limpar a pesquisa via SESSION
+					if (@$_SESSION['search'][$this->form_dbtable])
+					{
+						unset($_SESSION['search'][$this->form_dbtable]['where']);
+						unset($_SESSION['search'][$this->form_dbtable]['history']);
+					}
 				}
 			}
 			
+		}
+		else if (@$_SESSION['search'][$this->form_dbtable])
+		{
+			//echo "FIZ FILTRO";
+			//print_r($_SESSION);
+			//die();
+			//para o filtro na paginacao
+			$this->historyFiltro = $_SESSION['search'][$this->form_dbtable]['history'];
+			$this->setListWhere($_SESSION['search'][$this->form_dbtable]['where']);
 		}
 	}
 	
 	public function criaFormLogin()
 	{
+		
+		echo "<div class='container'>
+				<div class='row'>
+					<div class='col-md-4 col-md-offset-4'>
+						<div class='login-panel panel panel-default'>
+							<div class='panel-heading'>
+								<h3 class='panel-title'>Login</h3>
+							</div>
+							<div class='panel-body'>
+								<form role='form' method='post' action=''>
+									<fieldset>
+										<input type='hidden' value='login' name='crud'/>
+										<div class='form-group'>
+											<input class='form-control' placeholder='E-mail' name='usuario' type='text' autofocus autocomplete='off'>
+										</div>
+										<div class='form-group'>
+											<input class='form-control' placeholder='Password' name='senha' type='password' autocomplete='off'>
+										</div>
+										<!-- <div class='checkbox'>
+											<label>
+												<input name='remember' type='checkbox' value='Remember Me'>Remember Me
+											</label>
+										</div>-->
+										
+										<button type='submit' class='btn btn-success'>Acessar</button>
+										<!--Change this to a button or input when using this as a form 
+										<a href='index.html' class='btn btn-lg btn-success btn-block'>Login</a>-->
+									</fieldset>
+								</form>
+							</div>
+						</div>
+					</div>
+				</div>
+			</div>";
+		/*
 		echo "<div class='loginFun'>";
 			echo "<h3>Login</h3>";
 		
@@ -224,7 +283,7 @@ Class CrudBootstrap{
 					echo "</tr>";
 				echo "</table>";
 			echo "</form>";
-		echo "</div>";
+		echo "</div>";*/
 	}
 	
 	public function criaFormEdit($id = 0)
@@ -235,63 +294,91 @@ Class CrudBootstrap{
 			$crud = $this->getCRUDInfo($this->form_dbtable,$id);
 			if ($crud)
 			{
-				echo "<form action='../../' method='post' class='navbar-form navbar-left' style='width: 100%;'>";
+				echo "<div class='col-lg-12'>";
+					echo "<form action='../../' role='form' id='crudForm' data-toggle='validator' method='post' class='navbar-left' style='width: 100%;'>";
 
-					echo "<input type='hidden' value='edit' name='crud'/>";
-					echo "<input type='hidden' value='".$id."' name='id'/>";
-					
-					echo "<table class='table'>";
-						foreach ($this->campos as $campo)
-						{ 
-							
-							
-							if ($campo['type'] == 'password'){
-								$e = new Encryption();
-								$value_text = $e->decode($crud[$campo['name']]);
-							}else{
-								$value_text = @$crud[$campo['name']];
-							}
-							
-							if ($campo['type']=='selectRel')
-							{
-								/*
-								'tableRel'=>'relComponentesKeyfun',
-								'idPai'=>'idKeyfun',
-								'options'=>'componentes',
-								'idFilhos'=>'idComponente',
-								*/
-								$reltemp = $this->getColumnCRUDInfoMulti($campo['idFilhos'],$campo['tableRel'],$campo['idPai'],$id);
-								//print_r($reltemp);
-								//foreach($reltemp as $r)
-								//{
-								//	$value_text[] = $r[$campo['idFilhos']];
-								//}
-								$value_text = $reltemp;
-								
-							}
-							//print_r($reltemp[0]);
-							if ($campo['type']!='hidden')
-							{
-								echo "<tr>";
-									echo "<td><label for='sel1'>".$campo['label'].":</label></td>";
-									echo "<td>".$this->formGeraElemento($campo,$value_text)."</td>";
-									//echo "<td><input type='".$campo[2]."' name='".$campo[1]."' class='form-control' value='".$value_text."' style='width:".$campo[3]."px'/></td>";
-								echo "</tr>";
-							}
-							else
-							{
-								$hiddens[] = $this->formGeraElemento($campo,'');
-							}
-						}
+						echo "<input type='hidden' value='edit' name='crud'/>";
+						echo "<input type='hidden' value='".$id."' name='id'/>";
 						
-						echo "<tr style='text-align: center;'>";
-							echo "<td colspan='2'><button type='button' onclick=\"location.href='../../';\"  class='btn btn-default'>Cancelar</button> <button type='submit' class='btn btn-default'>Salvar</button></td>";
-						echo "</tr>";
-					echo "</table>";
-					if (@$hiddens)
-						foreach($hiddens as $h)
-							echo $h;
-				echo "</form>";
+						//echo "<table class='table'>";
+							foreach ($this->campos as $campo)
+							{ 
+								
+								
+								if ($campo['type'] == 'password'){
+									$e = new Encryption();
+									$value_text = $e->decode($crud[$campo['name']]);
+								}else{
+									$value_text = @$crud[$campo['name']];
+								}
+								
+								if ($campo['type']=='selectRel')
+								{
+									/*
+									'tableRel'=>'relComponentesKeyfun',
+									'idPai'=>'idKeyfun',
+									'options'=>'componentes',
+									'idFilhos'=>'idComponente',
+									*/
+									$reltemp = $this->getColumnCRUDInfoMulti($campo['idFilhos'],$campo['tableRel'],$campo['idPai'],$id);
+									//print_r($reltemp);
+									//foreach($reltemp as $r)
+									//{
+									//	$value_text[] = $r[$campo['idFilhos']];
+									//}
+									$value_text = $reltemp;
+									
+								}
+								//print_r($reltemp[0]);
+								if ($campo['type']!='hidden')
+								{
+									/*
+									<div class="form-group has-error">
+										<label class="control-label" for="inputError">Input with error</label>
+										<input type="text" class="form-control" id="inputError">
+									</div>
+									*/
+								
+									/*
+									echo "<tr>";
+										echo "<td><label for='sel1'>".$campo['label'].":</label></td>";
+										echo "<td>".$this->formGeraElemento($campo,$value_text)."</td>";
+										//echo "<td><input type='".$campo[2]."' name='".$campo[1]."' class='form-control' value='".$value_text."' style='width:".$campo[3]."px'/></td>";
+									echo "</tr>";
+									*/
+									if (@$campo['required'] && ($value_text == ''))
+										$classreq = ' has-error';
+									else
+										$classreq = '';
+									
+									//echo "<tr><td>";
+										echo "<div class='form-group".$classreq."' style='margin-bottom: 0px;'>";
+											echo "<label class='control-label' for='id".$campo['name']."'>".$campo['label']."</label>";
+											echo $this->formGeraElemento($campo,$value_text);
+											//echo "<td><input type='".$campo[2]."' name='".$campo[1]."' class='form-control' value='".$value_text."' style='width:".$campo[3]."px'/></td>";
+										echo "</div>";
+									//echo "</td></tr>";
+								}
+								else
+								{
+									$hiddens[] = $this->formGeraElemento($campo,'');
+								}
+							}
+							
+							//echo "<tr style='text-align: center;'><td>";
+								echo "<div class='form-group' style='margin-top: 10px;'>";
+									echo "<button type='button' onclick=\"location.href='../../';\"  class='btn btn-default'>Cancelar</button> ";
+									echo "<button type='submit' class='btn btn-success'>Salvar</button>";
+								echo "</div>";
+							//echo "</td></tr>";
+						//echo "</table>";
+						
+						if (@$hiddens)
+							foreach($hiddens as $h)
+								echo $h;
+								
+					echo "</form>";
+				echo "</div>";
 			}
 			else
 			{
@@ -303,39 +390,55 @@ Class CrudBootstrap{
 	}
 	
 	public function criaFormAdd()
-	{
-		
-		echo "<h3>Adicionando ".$this->form_title."</h3>";
-		
-			echo "<form action='../' method='post' class='navbar-form navbar-left' style='margin-left:auto;margin-right:auto;width: 100%;'>";
-				echo "<input type='hidden' value='add' name='crud'/>";
-				echo "<table class='table'>";
-					foreach ($this->campos as $campo)
-					{
-						if ($campo['type']!='hidden')
+	{	
+			echo "<div class='col-lg-12'>";
+				echo "<h3>Adicionando ".$this->form_title."</h3>";
+			
+				echo "<form action='../' role='form' id='crudForm' data-toggle='validator' method='post' class='navbar-left' style='margin-left:auto;margin-right:auto;width: 100%;'>";
+					echo "<input type='hidden' value='add' name='crud'/>";
+					//echo "<table class='table'>";
+						foreach ($this->campos as $campo)
 						{
-							echo "<tr>";
-								echo "<td>".$campo['label'].":</td>";
-								echo "<td>".$this->formGeraElemento($campo,'')."</td>";
-							echo "</tr>";
-						}
-						else
-						{
-							$hiddens[] = $this->formGeraElemento($campo,'');
+							if ($campo['type']!='hidden')
+							{
+								/*
+								echo "<tr>";
+									echo "<td>".$campo['label'].":</td>";
+									echo "<td>".$this->formGeraElemento($campo,'')."</td>";
+								echo "</tr>";*/
+								if (@$campo['required'])
+									$classreq = ' has-error';
+								else
+									$classreq = '';
+								
+								echo "<div class='form-group".$classreq."' style='margin-bottom: 0px;'>";
+									echo "<label class='control-label' for='id".$campo['name']."'>".$campo['label']."</label>";
+									echo $this->formGeraElemento($campo,'');
+								echo "</div>";
+							}
+							else
+							{
+								$hiddens[] = $this->formGeraElemento($campo,'');
+							}
+							
 						}
 						
-					}
-					echo "<tr style='text-align: center;'>";
-						echo "<td colspan='2'><button type='button' onclick=\"location.href='../';\"  class='btn btn-default'>Cancelar</button> <button type='submit' class='btn btn-default'>Adicionar</button></td>";
-					echo "</tr>";
-				echo "</table>";
-				
-				if (@$hiddens)
-					foreach($hiddens as $h)
-						echo $h;
+						/*echo "<tr style='text-align: center;'>";
+							echo "<td colspan='2'><button type='button' onclick=\"location.href='../';\"  class='btn btn-default'>Cancelar</button> <button type='submit' class='btn btn-default'>Adicionar</button></td>";
+						echo "</tr>";*/
 						
-			echo "</form>";
-		
+						echo "<div class='form-group' style='margin-top: 10px;'>";
+							echo "<button type='button' onclick=\"location.href='../';\"  class='btn btn-default'>Cancelar</button> ";
+							echo "<button type='submit' class='btn btn-success'>Salvar</button>";
+						echo "</div>";
+					//echo "</table>";
+					
+					if (@$hiddens)
+						foreach($hiddens as $h)
+							echo $h;
+							
+				echo "</form>";
+			echo "</div>";
 	}
 	
 	public function criaFormList($colunas = array('Nome'=>'nome'))
@@ -552,9 +655,15 @@ Class CrudBootstrap{
 	{
 		$path = $this->core->system_path;
 		
+		//para o botao filtro ficar verde quando tiver filtro ativo
+		if (@$this->historyFiltro != '')
+			$corFiltro = 'success';
+		else
+			$corFiltro = 'default';
+		
 		echo "<div id='divBotoes' style='clear:both;'>";
-			echo "<span class='label label-success' style='cursor:pointer;' title='Criar novo'><a href='".$path."/".$this->form_dbtable."/add/' style='color:#fff;'>Adicionar</a></span>";
-			echo " <span class='label label-success' style='cursor:pointer;' title='Mostrar filtro'><a href='#' id='btnFiltro' style='color:#fff;'>Filtro</a></span>";
+			echo "<span class='label label-default' style='cursor:pointer;' title='Criar novo'><a href='".$path."/".$this->form_dbtable."/add/' style='color:#fff;'>Adicionar</a></span>";
+			echo " <span class='label label-".$corFiltro."' style='cursor:pointer;' title='Mostrar filtro'><a href='#' id='btnFiltro' style='color:#fff;'>Filtro</a></span>";
 		echo "</div>";
 	}
 	
@@ -620,6 +729,12 @@ Class CrudBootstrap{
 	public function formGeraElemento($campo,$value,$primeiroBranco=false)
 	{
 		//print_r($value);
+		
+		//form validation
+		if (@$campo['required'])
+			$req = 'required';
+		else
+			$req = '';
 	
 		if (@$campo['size'] > 0)
 			$size = $campo['size']."px";
@@ -628,7 +743,14 @@ Class CrudBootstrap{
 			
 		if (($campo['type'] == 'text') || ($campo['type'] == 'password'))
 		{
-			return "<input type='".$campo['type']."' name='".$campo['name']."' value='".$value."' class='form-control ".@$campo['class']."' style='width:".$size."' autocomplete='off'/>";
+			//verifica se é necessário tratamento de data 
+			if ((@$campo['dt_tela_mask'] != '') && ($value!=''))
+			{
+				//echo ">>".$campo['dt_tela_mask']."||".$value."<<";
+				$value = $this->help->fixDate($campo['dt_tela_mask'],$value);
+			}
+			
+			return "<input type='".$campo['type']."' id='id".$campo['name']."' name='".$campo['name']."' value='".$value."' class='form-control ".@$campo['class']."' style='width:".$size."' autocomplete='off' ".$req."/>";
 		}
 		else if ($campo['type'] == 'hidden')
 		{
@@ -636,7 +758,7 @@ Class CrudBootstrap{
 		}
 		else if($campo['type'] == 'textarea')
 		{
-			return "<textarea name='".$campo['name']."' class='form-control ".@$campo['class']."' style='width:".$size."'/>".$value."</textarea>";
+			return "<textarea name='".$campo['name']."' class='form-control ".@$campo['class']."' style='width:".$size."' ".$req."/>".$value."</textarea>";
 		}
 		else if($campo['type'] == 'select')
 		{
@@ -648,7 +770,7 @@ Class CrudBootstrap{
 				
 			$return_sel = "";
 			
-			$return_sel .= "<select name='".$campo['name']."' style='width:".$size."' class='form-control ".@$campo['class']."'>";
+			$return_sel .= "<select name='".$campo['name']."' style='width:".$size."' class='form-control ".@$campo['class']."' ".$req.">";
 			
 			if ($primeiroBranco)
 				$return_sel .= "<option value='' selected>&nbsp;</option>";

@@ -30,14 +30,23 @@ Class Help{
 	
 	function fixDate($format,$dt)
 	{
+		/*
+		if (preg_match("/^[0-9]{4}-(0[1-9]|1[0-2])-(0[1-9]|[1-2][0-9]|3[0-1])$/",$dt))
+			$this->dtENtoBR($dt);
+		else
+			$this->dtBRtoEN($dt);
+		*/
+		
 		if ($format == 'yyyy-mm-dd')
 		{
 			return $this->dtBRtoEN($dt);
 		}
 		else if ($format == 'dd/mm/yyyy')
 		{
-			return $this->dtENtoBR($dt);
+			return $this->datetimeENtoBR($dt,true);
 		}
+		else
+			return "erro dt format";
 	}
 	
 	function dtBRtoEN($data){
@@ -52,12 +61,15 @@ Class Help{
         return $data;
     }
 
-    function datetimeENtoBR($data){
+    function datetimeENtoBR($data,$noHour=false){
         $datas = explode(" ",$data);
         
         $data1 = explode("-",$datas[0]);
         $hora = explode(":",$datas[1]);
-        $data = $data1[2]."/".$data1[1]."/".$data1[0]." ".$hora[0].":".$hora[1];
+		if ($noHour)
+			$data = $data1[2]."/".$data1[1]."/".$data1[0];
+		else
+			$data = $data1[2]."/".$data1[1]."/".$data1[0]." ".$hora[0].":".$hora[1];
         return $data;
     }
     
