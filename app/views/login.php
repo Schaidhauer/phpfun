@@ -24,7 +24,7 @@ Class Login{
 		else
 		{
 			//Se não achar o metodo, envia um erro.
-			//echo "Erro ao chamar metodo ".$name;
+			echo "Erro ao chamar metodo ".$name;
 			
 			$this->core->html->head();
 			$this->core->html->bodyBegin();
