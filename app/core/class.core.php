@@ -31,9 +31,11 @@ Class Core{
 			$this->html    = new HTML($this->config->config_menu,$this->config->config_html,$this->system_path);
 		
 			$this->getURL();
-			$this->html->setAtual($this->cmd[0]);
+			$this->html->setAtual($this->cmd[0],$this->cmd[1]);
+			//echo "[FOI ATUAL] ";
 		}else{
 			$this->getURL();
+			//echo "[NAO FOI ATUAL] ";
 		}
 	}
 	
