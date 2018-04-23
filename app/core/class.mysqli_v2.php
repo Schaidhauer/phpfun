@@ -44,6 +44,7 @@ class MysqliDb_v2
 	public function insert($query)
 	{
 		$this->result = $this->connection->query($query);
+		//$this->result = $this->connection->query($this->connection->real_escape_string($query));
 		return mysqli_insert_id($this->connection);
 	}
 
