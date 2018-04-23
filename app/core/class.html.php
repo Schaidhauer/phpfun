@@ -815,33 +815,6 @@ Class Html{
 		</script>
 		";
 	}
-	
-	function createDashPanel($cor = 'default',$number=0,$content='',$href='#')
-	{
-	
-		return "
-		
-			<div class='panel panel-".$cor." funpanelclicable' style='margin-bottom: 5px;'>
-				
-					<div class='panel-heading'>
-						<a href='".$href."'>
-							<div class='row'>
-								<div class='col-xs-12' style='text-align:center;'>
-									<div class='huge' style='text-align: center;'>".$number."</div>
-									<span class='badge' style='background-color:#fff;color:#575757;'>
-										".$content." 													
-									</span>
-								</div>
-							</div>
-						</a>
-					</div>
-				
-			</div>
-		
-		";
-	
-	}
-
 }
 
 
