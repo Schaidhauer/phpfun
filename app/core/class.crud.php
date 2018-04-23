@@ -52,6 +52,13 @@ Class CrudBootstrap{
 		{
 			$this->form_action   = $formconfig['form_action'];
 			$this->form_dbtable  = $formconfig['form_dbtable'];
+			
+			//Para os casos de nao informar a class, assumir o nome do dbtable
+			if (@$formconfig['form_class'] != '')
+				$this->form_class    = $formconfig['form_class'];
+			else
+				$this->form_class    = $formconfig['form_dbtable'];
+				
 			$this->form_title    = $formconfig['form_title'];
 			
 			$this->campos        = $formconfig['campos'];
@@ -411,9 +418,15 @@ Class CrudBootstrap{
 								else
 									$classreq = '';
 								
+								
+								if (@$campo['default']!='')
+									$value=$campo['default'];
+								else
+									$value='';
+								
 								echo "<div class='form-group".$classreq."' style='margin-bottom: 0px;'>";
 									echo "<label class='control-label' for='id".$campo['name']."'>".$campo['label']."</label>";
-									echo $this->formGeraElemento($campo,'');
+									echo $this->formGeraElemento($campo,$value,true);
 								echo "</div>";
 							}
 							else
@@ -466,7 +479,7 @@ Class CrudBootstrap{
 				echo "</tr>";
 				foreach ($res as $v)
 				{
-					$link_edit = $path."/".$this->form_dbtable."/edit/".$v['id'];
+					$link_edit = $path."/".$this->form_class."/edit/".$v['id'];
 					$btn = "<a href='".$link_edit."'><span class='badge' style='background-color:#41B446' title='Editar'>
 						<span class='glyphicon glyphicon-list-alt' aria-hidden='true'></span> </span></a>";
 					
@@ -573,14 +586,14 @@ Class CrudBootstrap{
 				if (@$this->paginarParametros[3] == $i)
 					echo "<span class='label' style='color:#aaa; border: 1px solid #ccc' title='Pagina de resultado atual'>".$i."</span> ";
 				else
-					echo "<span class='label label-default' title='Ir para pagina de resultado ".$i."'><a href='".$path."/".$this->form_dbtable."/listar/p/".$i."' style='color:#fff;'>".$i."</a></span> ";
+					echo "<span class='label label-default' title='Ir para pagina de resultado ".$i."'><a href='".$path."/".$this->form_class."/listar/p/".$i."' style='color:#fff;'>".$i."</a></span> ";
 			}
 			else
 			{//nada na URL
 				if (($this->paginarStart == 0) && ($i == 1))
 					echo "<span class='label' style='color:#aaa; border: 1px solid #ccc' title='Pagina de resultado atual'>".$i."</span> ";
 				else
-					echo "<span class='label label-default' title='Ir para pagina de resultado ".$i."'><a href='".$path."/".$this->form_dbtable."/listar/p/".$i."' style='color:#fff;'>".$i."</a></span> ";
+					echo "<span class='label label-default' title='Ir para pagina de resultado ".$i."'><a href='".$path."/".$this->form_class."/listar/p/".$i."' style='color:#fff;'>".$i."</a></span> ";
 			}
 		}
 		//echo "| >";
@@ -662,7 +675,7 @@ Class CrudBootstrap{
 			$corFiltro = 'default';
 		
 		echo "<div id='divBotoes' style='clear:both;'>";
-			echo "<span class='label label-default' style='cursor:pointer;' title='Criar novo'><a href='".$path."/".$this->form_dbtable."/add/' style='color:#fff;'>Adicionar</a></span>";
+			echo "<span class='label label-default' style='cursor:pointer;' title='Criar novo'><a href='".$path."/".$this->form_class."/add/' style='color:#fff;'>Adicionar</a></span>";
 			echo " <span class='label label-".$corFiltro."' style='cursor:pointer;' title='Mostrar filtro'><a href='#' id='btnFiltro' style='color:#fff;'>Filtro</a></span>";
 		echo "</div>";
 	}
@@ -672,7 +685,7 @@ Class CrudBootstrap{
 		$path = $this->core->system_path;
 		
 		echo "<div id='divFiltro' style='display:none;'>";
-			echo "<form action='".$path."/".$this->form_dbtable."/listar/' method='post' class='navbar-form navbar-left' id='filterForm'>";
+			echo "<form action='".$path."/".$this->form_class."/listar/' method='post' class='navbar-form navbar-left' id='filterForm'>";
 				echo "<input type='hidden' value='filtro' name='crud'/>";
 				echo "<table class='table'>";
 				
@@ -688,9 +701,9 @@ Class CrudBootstrap{
 									echo "<td style='text-align:right;' title='".$campo['type']."'>".$campo['label'].":</td>";
 									
 									if ($campo['type'] != 'selectRel')
-										echo "<td>".$this->formGeraElemento($campo,$this->historyFiltro[$campo['name']],true)."</td>";
+										echo "<td>".$this->formGeraElemento($campo,$this->historyFiltro[$campo['name']],true,true)."</td>";
 									else
-										echo "<td>".$this->formGeraElemento($campo,$this->historyFiltro[$campo['name']]['values'],false)."</td>";
+										echo "<td>".$this->formGeraElemento($campo,$this->historyFiltro[$campo['name']]['values'],false,true)."</td>";
 										
 								echo "</tr>";
 							
@@ -717,21 +730,24 @@ Class CrudBootstrap{
 		echo "</div>";
 	}
 	
-	public function formGetSelectContent($tbl)
+	public function formGetSelectContent($tbl,$label='nome')
 	{
-		$sql = "SELECT id,nome FROM ".$tbl;
+		$sql = "SELECT id,".$label." FROM ".$tbl;
 		
 		$res = $this->bdconn->select($sql);
 		
 		return $res;
 	}
 	
-	public function formGeraElemento($campo,$value,$primeiroBranco=false)
+	public function formGeraElemento($campo,$value,$primeiroBranco=false,$ignoraRequired=false)
 	{
 		//print_r($value);
 		
 		//form validation
-		if (@$campo['required'])
+		$selectLabel = 'nome';
+		
+		
+		if (@$campo['required'] && !$ignoraRequired)
 			$req = 'required';
 		else
 			$req = '';
@@ -762,8 +778,11 @@ Class CrudBootstrap{
 		}
 		else if($campo['type'] == 'select')
 		{
+			if (@$campo['selectLabel']!='')
+				$selectLabel = $campo['selectLabel'];
+		
 			if (!is_array($campo['options']))
-				$sel = $this->formGetSelectContent($campo['options']);
+				$sel = $this->formGetSelectContent($campo['options'],$selectLabel);
 			else
 				$sel = $campo['options'];
 				
@@ -782,9 +801,9 @@ Class CrudBootstrap{
 					//print_r($s);
 					if (!is_array($campo['options'])){
 						if ($value == $s['id'])
-							$return_sel .= "<option value='".$s['id']."' selected>".$s['nome']."</option>";
+							$return_sel .= "<option value='".$s['id']."' selected>".$s[$selectLabel]."</option>";
 						else
-							$return_sel .= "<option value='".$s['id']."'>".$s['nome']."</option>";
+							$return_sel .= "<option value='".$s['id']."'>".$s[$selectLabel]."</option>";
 					}else{
 						if ($value == $v)
 							$return_sel .= "<option value='".$v."' selected>".$s."</option>";
@@ -806,8 +825,11 @@ Class CrudBootstrap{
 			//print_r($value);
 			//echo "<hr/>";
 			
+			if (@$campo['selectLabel']!='')
+				$selectLabel = $campo['selectLabel'];
+			
 			if (!is_array($campo['options']))
-				$sel = $this->formGetSelectContent($campo['options']);
+				$sel = $this->formGetSelectContent($campo['options'],$selectLabel);
 			else
 				$sel = $campo['options'];
 				
@@ -844,18 +866,18 @@ Class CrudBootstrap{
 							//print_r($value);
 							
 							if (in_array($s['id'], $value))
-								$return_sel .= "<option value='".$s['id']."' selected>".$s['nome']."</option>";
+								$return_sel .= "<option value='".$s['id']."' selected>".$s[$selectLabel]."</option>";
 							else
-								$return_sel .= "<option value='".$s['id']."'>".$s['nome']."</option>";
+								$return_sel .= "<option value='".$s['id']."'>".$s[$selectLabel]."</option>";
 							
 							//$return_sel
 						}
 						else
 						{
 							if ($value == $s['id'])
-								$return_sel .= "<option value='".$s['id']."' selected>".$s['nome']."</option>";
+								$return_sel .= "<option value='".$s['id']."' selected>".$s[$selectLabel]."</option>";
 							else
-								$return_sel .= "<option value='".$s['id']."'>".$s['nome']."</option>";
+								$return_sel .= "<option value='".$s['id']."'>".$s[$selectLabel]."</option>";
 						}
 					}
 					else
@@ -907,7 +929,7 @@ Class CrudBootstrap{
 				}
 				else
 				{
-					$sql .= $p."='".$v."',";
+					$sql .= $p."='".addslashes($v)."',";
 				}
 			}
 			
@@ -1033,7 +1055,7 @@ Class CrudBootstrap{
 				else
 				{
 					$colunas .= $p.",";
-					$valores .= "'".$v."',";
+					$valores .= "'".addslashes($v)."',";
 				}
 			}
 			
@@ -1092,10 +1114,13 @@ Class CrudBootstrap{
 	{
 		$sql = "SELECT ".$col." FROM ".$table." WHERE id = ".$id.";";
 		
-		$res = $this->bdconn->select($sql);
-		
-		//return utf8_encode($res[0][$col]);
-		return $res[0][$col];
+		if ($id != '')
+		{
+			$res = $this->bdconn->select($sql);
+			return $res[0][$col];
+		}
+		else
+			return '';
 	}
 	
 	public function getCRUDInfo($table,$id)
