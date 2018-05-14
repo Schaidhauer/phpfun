@@ -454,6 +454,88 @@ Class CrudBootstrap{
 			echo "</div>";
 	}
 	
+	public function criaView($id)
+	{
+	
+		$path = $this->core->system_path;
+		$obj = $this->getById($id);
+		
+		echo "<div class='row'>";
+			$link_edit = $path."/".$this->form_class."/edit/".$obj['id'];
+			echo "<a href='".$link_edit."'><span class='label label-default' title='Editar'>Editar</span></a> ";
+			echo "<a href='../'><span class='label label-default' title='Voltar para lista'>Ver lista</span></a> ";
+
+			//Se tiver um campo com NOME, escreve grande na tela
+			//if (@$obj['nome'] != '')
+			//	echo "<h2>".$obj['nome']."</h2>";
+			echo "<br/><br/>";
+			
+			foreach ($this->campos as $campo)
+			{
+				if ($campo['type'] == 'selectRel')
+				{
+					if (@$campo['selectLabel']!='')
+						$selectLabel = $campo['selectLabel'];
+					else
+						$selectLabel = "nome";
+						
+					$relNames = $this->formGetSelectContent($campo['options'],$selectLabel);
+					$reltemp = $this->getColumnCRUDInfoMulti($campo['idFilhos'],$campo['tableRel'],$campo['idPai'],$id);
+					
+					echo "<p><b>".$campo['label'].":</b></p>";
+					foreach($relNames as $r)
+					{
+						foreach ($reltemp as $tmp)
+						{
+							if (@$r['id'] == $tmp)
+								$ret[] = "<a href='".$path."/".$campo['options']."/".@$r['id']."'>".@$r['nome']."</a>";
+						}
+					}
+					$value_text = implode(',',$ret);
+					echo "<p>".$value_text."</p>";
+					
+				}
+				else if ($campo['type'] == 'select')
+				{
+					if (@$campo['selectLabel']!='')
+						$selectLabel = $campo['selectLabel'];
+					else
+						$selectLabel = "nome";
+						
+					$relNames = $this->formGetSelectContent($campo['options'],$selectLabel);
+					
+					//print_r($relNames);
+					//echo "<p><b>".$campo['label'].":</b> ".$id." </p>";
+					
+					foreach($relNames as $r)
+					{
+						if (@$r['id'] == $obj[$campo['name']])
+							echo "<p><b>".$campo['label'].":</b> <a href='".$path."/".$campo['options']."/".@$r['id']."'>".@$r['nome']."</a></p>";
+					}
+					//print_r($relNames);
+					//$reltemp = $this->getColumnCRUDInfoMulti($campo['idFilhos'],$campo['tableRel'],$campo['idPai'],$id);
+					
+					//foreach($reltemp as $r)
+					//{
+						//$ret = "<a href='".$path."/".$campo['options']."/".@$relNames[$r]['id']."'>".@$relNames[$r]['nome']."</a>";
+					//}
+					//$value_text = implode(',',$ret);
+					//echo "<p>".$ret."</p>";
+					
+				}
+				else				
+					echo "<p><b>".$campo['label'].":</b> ".$obj[$campo['name']]."</p>";
+			}
+			
+		echo "</div>";
+	
+	}
+	
+	public function getById($id = '')
+	{
+		return $this->getCRUDInfo($this->form_dbtable,$id);
+	}
+	
 	public function criaFormList($colunas = array('Nome'=>'nome'))
 	{
 		$res = $this->getList("*");
@@ -480,13 +562,17 @@ Class CrudBootstrap{
 				foreach ($res as $v)
 				{
 					$link_edit = $path."/".$this->form_class."/edit/".$v['id'];
-					$btn = "<a href='".$link_edit."'><span class='badge' style='background-color:#41B446' title='Editar'>
-						<span class='glyphicon glyphicon-list-alt' aria-hidden='true'></span> </span></a>";
+					$link_view = $path."/".$this->form_class."/".$v['id'];
+					
+					$btn = "<a href='".$link_edit."'><span class='badge' style='background-color:#cfcfcf' title='Editar'>
+						<span class='fa fa-edit' aria-hidden='true'></span> </span></a>";
+					$btnView = "<a href='".$link_view."'><span class='badge' style='background-color:#cfcfcf' title='Ver'>
+						<span class='fa fa-eye' aria-hidden='true'></span> </span></a>";
 					
 					
 				
 					echo "<tr style='color:#000; background:#fff; text-align:left;'>";
-						echo "<td style='color:#000;'>".$btn."</td>";
+						echo "<td style='color:#000;'>".$btn." ".$btnView."</td>";
 						foreach ($colunas as $cr => $vr)
 						{
 							if (is_array($vr))
@@ -500,7 +586,18 @@ Class CrudBootstrap{
 									{
 										foreach ($rels as $r)
 										{
-											$rels_table[] = $this->getColumnCRUDInfo($vr['return'],$vr['table'],$r);
+										
+											//se vier com valor no relURL, é sinal que a classe é outra, e não a mesma do table
+											if (@$vr['relURL'] != '')
+												$relURL = $vr['relURL'];
+											else
+												$relURL = $vr['table'];
+											
+											//se vier FALSE é pq não devemos ter link neste CRUD
+											if (@$vr['linkURL'])
+												$relURL = "";
+											
+											$rels_table[] = $this->getColumnCRUDInfo($vr['return'],$vr['table'],$r,$relURL);
 										}
 										$rtb = implode(",",$rels_table);
 									}
@@ -512,8 +609,39 @@ Class CrudBootstrap{
 									echo "<td style='color:#000;'>".$rtb."</td>";
 									
 								}
-								else	
-									echo "<td style='color:#000;'>".$this->getColumnCRUDInfo($vr['return'],$vr['table'],$v[$vr['field']])."</td>";
+								else if (is_array(@$vr['options']))
+								{
+									/*
+									//se vier com valor no relURL, é sinal que a classe é outra, e não a mesma do table
+									if (@$vr['relURL'] != '')
+										$relURL = $vr['relURL'];
+									else
+										$relURL = $vr['table'];
+									
+									//se vier FALSE é pq não devemos ter link neste CRUD
+									if (@$vr['linkURL'])
+										$relURL = "";
+									
+									if ($relURL =! '')
+										echo "<a href='".$path."/".$relURL."/".$id."'>".$vr['options'][$v[$vr['field']]]."</a>";
+									else*/
+										echo "<td style='color:#000;'>".$vr['options'][$v[$vr['field']]]."</td>";
+								}
+								else
+								{
+									//se vier com valor no relURL, é sinal que a classe é outra, e não a mesma do table
+									if (@$vr['relURL'] != '')
+										$relURL = $vr['relURL'];
+									else
+										$relURL = $vr['table'];
+									
+									//se vier FALSE é pq não devemos ter link neste CRUD
+									if (isset($vr['linkURL']))
+										if (!$vr['linkURL'])
+											$relURL = "";	
+												
+									echo "<td style='color:#000;'>".$this->getColumnCRUDInfo($vr['return'],$vr['table'],$v[$vr['field']],$relURL)."</td>";
+								}
 							}
 							else
 								echo "<td style='color:#000;'>".$v[$vr]."</td>";
@@ -701,7 +829,15 @@ Class CrudBootstrap{
 									echo "<td style='text-align:right;' title='".$campo['type']."'>".$campo['label'].":</td>";
 									
 									if ($campo['type'] != 'selectRel')
-										echo "<td>".$this->formGeraElemento($campo,$this->historyFiltro[$campo['name']],true,true)."</td>";
+									{
+										//ajusta o filtro caso não venha nada, colocar o padrão (se setado)
+										if (($this->historyFiltro[$campo['name']] == '') && (@$campo['default']!=''))
+											$value=$campo['default'];
+										else
+											$value=$this->historyFiltro[$campo['name']];
+										
+										echo "<td>".$this->formGeraElemento($campo,$value,true,true)."</td>";
+									}
 									else
 										echo "<td>".$this->formGeraElemento($campo,$this->historyFiltro[$campo['name']]['values'],false,true)."</td>";
 										
@@ -732,11 +868,28 @@ Class CrudBootstrap{
 	
 	public function formGetSelectContent($tbl,$label='nome')
 	{
-		$sql = "SELECT id,".$label." FROM ".$tbl;
+		//validar para ver se não veio uma query MySQL ao invez do nome da tabela ('show procedure status')
+		//verifico se não tem um ESPACO na string tbl, se tiver, sinal que não é uma tabela
 		
-		$res = $this->bdconn->select($sql);
+		if (preg_match('/\s/',$tbl))
+		{
+			$sql = $tbl;
+			$res = $this->bdconn->select($sql);
+			foreach ($res as $r)
+			{
+				$ret[] = array('id'=>$r['Name'],'nome'=>$r['Name']);
+			}
+			return $ret;
+		}
+		else
+		{
+			$sql = "SELECT id,".$label." FROM ".$tbl;
+			$res = $this->bdconn->select($sql);
+			return $res;
+		}
 		
-		return $res;
+		
+		
 	}
 	
 	public function formGeraElemento($campo,$value,$primeiroBranco=false,$ignoraRequired=false)
@@ -836,10 +989,10 @@ Class CrudBootstrap{
 				
 			$return_sel = "";
 			
-			$return_sel .= "<select name='".$campo['name']."[]' style='width:".$size."' class='form-control ".@$campo['class']." select2' multiple='multiple'>";
+			$return_sel .= "<select name='".$campo['name']."[]' style='width:".$size."' class='form-control ".@$campo['class']." select2' multiple='multiple' ".$req.">";
 			
-			if (($primeiroBranco) && ($value == ''))
-				$return_sel .= "<option value='' selected>&nbsp;</option>";
+			//if (($primeiroBranco) && ($value == ''))
+			//	$return_sel .= "<option value='' selected>&nbsp;</option>";
 			
 			$options_rel = array();
 			
@@ -903,7 +1056,7 @@ Class CrudBootstrap{
 		$sql = "UPDATE ".$this->form_dbtable." SET ";
 		$contem_relacionamentos = false;
 		$rel_inserts = array();
-		
+		$rel_delete = array();
 		
 		foreach ($post as $p => $v){
 			if (($p == 'password')||($p == 'senha'))
@@ -920,11 +1073,14 @@ Class CrudBootstrap{
 				{//se for um array, é um sinal que é de um campo multiplo, que precisa de uma tabela de relacionamento
 					$contem_relacionamentos = true;
 					
-					$rel_delete = "DELETE FROM ".$v['tableRel']." WHERE ".$v['idPai']." = ".$id.";";
+					$rel_delete[] = "DELETE FROM ".$v['tableRel']." WHERE ".$v['idPai']." = ".$id.";";
 					
-					foreach ($v['values'] as $i)
+					if (sizeof($v['values']) > 0)
 					{
-						$rel_inserts[] = "INSERT INTO ".$v['tableRel']." (".$v['idFilhos'].",".$v['idPai'].") VALUES (".$i.",";
+						foreach ($v['values'] as $i)
+						{
+							$rel_inserts[] = "INSERT INTO ".$v['tableRel']." (".$v['idFilhos'].",".$v['idPai'].") VALUES (".$i.",";
+						}
 					}
 				}
 				else
@@ -945,7 +1101,13 @@ Class CrudBootstrap{
 		if ($contem_relacionamentos)
 		{
 			//deletar todos os relacionamentos primeiro
-			$this->bdconn->executa($rel_delete);
+			//echo $rel_delete;
+			//print_r($rel_inserts);
+			foreach($rel_delete as $del)
+			{
+				$this->bdconn->executa($del);
+			}
+			
 			
 			foreach ($rel_inserts as $ins)
 			{
@@ -1110,14 +1272,19 @@ Class CrudBootstrap{
 		return $values;
 	}
 	
-	public function getColumnCRUDInfo($col,$table,$id)
+	public function getColumnCRUDInfo($col,$table,$id,$relURL='')
 	{
+		$path = $this->core->system_path;
+		
 		$sql = "SELECT ".$col." FROM ".$table." WHERE id = ".$id.";";
 		
 		if ($id != '')
 		{
 			$res = $this->bdconn->select($sql);
-			return $res[0][$col];
+			if ($relURL != '')
+				return "<a href='".$path."/".$relURL."/".$id."'>".$res[0][$col]."</a>";
+			else
+				return $res[0][$col];
 		}
 		else
 			return '';
