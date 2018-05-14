@@ -24,6 +24,25 @@ Class Help{
 		return $string;
 	}
 	
+	function ms_escape_string($data)
+	{
+		if ( !isset($data) or empty($data) ) return '';
+		if ( is_numeric($data) ) return $data;
+
+		$non_displayables = array(
+			'/%0[0-8bcef]/',            // url encoded 00-08, 11, 12, 14, 15
+			'/%1[0-9a-f]/',             // url encoded 16-31
+			'/[\x00-\x08]/',            // 00-08
+			'/\x0b/',                   // 11
+			'/\x0c/',                   // 12
+			'/[\x0e-\x1f]/'             // 14-31
+		);
+		foreach ( $non_displayables as $regex )
+			$data = preg_replace( $regex, '', $data );
+		$data = str_replace("'", "''", $data );
+		return $data;
+	}
+	
 	function escreverCodigosComBR($string){
 		return str_replace("\n",'<br />',htmlentities(str_replace('<br />',"\n",$string)));
 	}
@@ -69,7 +88,7 @@ Class Help{
 		if ($noHour)
 			$data = $data1[2]."/".$data1[1]."/".$data1[0];
 		else
-			$data = $data1[2]."/".$data1[1]."/".$data1[0]." ".$hora[0].":".$hora[1];
+			$data = $data1[2]."/".$data1[1]."/".$data1[0]." ".$hora[0].":".$hora[1].":".$hora[2];
         return $data;
     }
     
@@ -203,6 +222,45 @@ Class Help{
 				$periods[$j].= "s";
 		}
 		return "$difference $periods[$j] {$tense}";
+	}
+	
+	function diaSemana($d){
+		switch($d){
+			case '1':
+				$x = 'Segunda';
+				break;
+			case '2':
+				$x = 'Terça';
+				break;
+			case '3':
+				$x = 'Quarta';
+				break;
+			case '4':
+				$x = 'Quinta';
+				break;
+			case '5':
+				$x = 'Sexta';
+				break;
+			case '6':
+				$x = 'Sábado';
+				break;
+			case '7':
+				$x = 'Domingo';
+				break;
+
+		}
+		return $x;
+	}
+	
+	//procura um valor em um array multidimencional
+	function in_array_r($needle, $haystack, $strict = false) {
+		foreach ($haystack as $item) {
+			if (($strict ? $item === $needle : $item == $needle) || (is_array($item) && $this->in_array_r($needle, $item, $strict))) {
+				return true;
+			}
+		}
+
+		return false;
 	}
 	
 }
