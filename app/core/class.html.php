@@ -34,6 +34,27 @@ Class Html{
 		$this->path = $path;
 		
 		$this->session = new Sessao();
+		
+		//custom feio
+		$this->montaFavoritos();
+	}
+	
+	//custom feio
+	public function montaFavoritos()
+	{
+		$bdconn = new Conexao();
+		$sql = "SELECT id,title
+			FROM wiki WHERE favorito = 1;";
+		$res = $bdconn->select($sql);	
+		
+		if ($res)
+		{
+			foreach($res as $f)
+			{
+				$favoritos[]=array('label'=>$f['title'],'icon'=>'fa-star','link'=>'wiki.php?id='.$f['id']);
+			}
+			$this->menu[] = array('label'=>'Favoritos','icon'=>'fa-star','id'=>'idFav','dropdown'=>$favoritos);
+		}
 	}
 	
 	public function setLogin($login)
