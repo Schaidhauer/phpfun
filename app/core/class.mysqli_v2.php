@@ -47,6 +47,12 @@ class MysqliDb_v2
 		//$this->result = $this->connection->query($this->connection->real_escape_string($query));
 		return mysqli_insert_id($this->connection);
 	}
+	
+	
+	public function escape($query)
+	{
+		return $this->connection->real_escape_string($query);
+	}
 
 	/**
 	 * Run select, insert, update or delete query
@@ -80,6 +86,11 @@ class MysqliDb_v2
 			return $rows;
 		else
 			return false;
+	}
+	
+	public function error()
+	{
+		return $this->connection->error;
 	}
 
 	

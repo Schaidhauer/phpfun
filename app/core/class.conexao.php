@@ -109,7 +109,7 @@ Class Conexao
 				if ($this->conn->query($query))
 					return $this->conn->fetch();
 				else
-					die ("ERRO MYSQL: {".$query."}");
+					die ("ERRO MYSQL: {".$query."} ".$this->error());
 			//}	
 			
 		
@@ -144,6 +144,16 @@ Class Conexao
 	
 	}
 	
+	public function escape($query)
+	{
+		return $this->conn->escape($query);
+	}
+	
+	public function error()
+	{
+		return $this->conn->error();
+	}
+	
 	public function insert($query)
 	{
 		if ($this->tipo == 'mysql')
@@ -152,9 +162,7 @@ Class Conexao
 			//retorna o lastid
 			return $this->conn->insert($query);
 		
-		}
-		
-	
+		}	
 	}
 }
 ?>
