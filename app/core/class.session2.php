@@ -67,6 +67,8 @@ Class Sessao{
             header("Location: ".$this->loginPage);
             exit;
         }
+		
+		session_write_close();
 	}
 
 	function login($usuario)
