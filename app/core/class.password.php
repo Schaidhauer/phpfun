@@ -1,10 +1,6 @@
 <?php
-
-
-class Encryption {
-
-	
-
+class Encryption
+{
     function encode($text)
     {
         return base64_encode($text);
@@ -14,7 +10,5 @@ class Encryption {
     {
         return base64_decode($text);
     }
-
 }
-
 ?>
