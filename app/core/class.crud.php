@@ -11,8 +11,8 @@ $formconfig = array(
 		array("Ambiente","ambiente","select",250,array(1=>"Produção",2=>"Homologação",3=>"Desenvolvimento")),
 		array("Produto","produto","select",250,"produtos"),
 	)
-);
-
+);TESTE DE MODIFICACAO
+ 
 $crud = new CrudBootstrap($formconfig);
 $crud->criaFormAdd();
 */
@@ -47,6 +47,8 @@ Class CrudBootstrap{
 		$this->config        = new Config();
 		$this->core          = new Core(false);
 		$this->help          = new Help();
+		
+		$this->path = Core::$system_path;
 	
 		if ($formconfig != '')
 		{
@@ -82,7 +84,7 @@ Class CrudBootstrap{
 	
 	public function post($debug = false)
 	{
-		if ($_POST)
+		if ($_REQUEST)
 		{
 			if ($this->campos)
 			{
@@ -93,16 +95,16 @@ Class CrudBootstrap{
 					//Exemplo de campos de data de criação, só vai fazer insert do valor na hora da criação e não mais na edição da linha.
 					if ($v['type'] != 'hidden')
 					{
-						if ((!is_array(@$_POST[$v['name']])) && (@$v['type'] != 'selectRel'))
+						if ((!is_array(@$_REQUEST[$v['name']])) && (@$v['type'] != 'selectRel'))
 						//if (!is_array(@$_POST[$v['name']]))
 						{
 							if (@$v['post_bd_mask'] != '')
 							{
-								$post_bd_mask = $this->help->fixDate($v['post_bd_mask'],$_POST[$v['name']]);
+								$post_bd_mask = $this->help->fixDate($v['post_bd_mask'],$_REQUEST[$v['name']]);
 								$post[$v['name']] = $post_bd_mask;
 							}
 							else
-								$post[$v['name']] = @$_POST[$v['name']];
+								$post[$v['name']] = @$_REQUEST[$v['name']];
 						}
 						else
 						{
@@ -111,14 +113,14 @@ Class CrudBootstrap{
 								'tableRel'=>$v['tableRel'],
 								'idPai'=>$v['idPai'],
 								'idFilhos'=>$v['idFilhos'],
-								'values'=>@$_POST[$v['name']]
+								'values'=>@$_REQUEST[$v['name']]
 								);
 						}
 					}
 					else
 					{ 
-						if (@$_POST[$v['name']] != '')
-							$post[$v['name']] = @$_POST[$v['name']];
+						if (@$_REQUEST[$v['name']] != '')
+							$post[$v['name']] = @$_REQUEST[$v['name']];
 					}
 						
 				}
@@ -126,7 +128,7 @@ Class CrudBootstrap{
 			
 			if ($debug)
 			{
-				print_r($_POST);
+				print_r($_REQUEST);
 				echo "<hr/>";
 				print_r($post);
 				die();
@@ -149,7 +151,7 @@ Class CrudBootstrap{
 				$this->loginCRUD($_POST['usuario'],$_POST['senha']);
 				//echo "<p class='banner-information'>Criado com sucesso!</p>";
 			}
-			else if (@$_POST['crud'] == 'filtro')
+			else if (@$_GET['crud'] == 'filtro')
 			{
 				//print_r($_POST);
 				//die();
@@ -201,16 +203,16 @@ Class CrudBootstrap{
 				}
 				if (sizeof(@$w) > 0)
 				{
-					$this->historyFiltro = $post;
+					//$this->historyFiltro = $post;
 					$where = implode(' AND ',$w);
 					
 					$this->setListWhere($where);
 					
-					$_SESSION['search'][$this->form_dbtable]['where'] = $where;
-					$_SESSION['search'][$this->form_dbtable]['history'] = $this->historyFiltro;
+					//$_SESSION['search'][$this->form_dbtable]['where'] = $where;
+					//$_SESSION['search'][$this->form_dbtable]['history'] = $this->historyFiltro;
 					
 				}
-				else
+				/*else
 				{
 					//se o filtro for em branco, limpar a pesquisa via SESSION
 					if (@$_SESSION['search'][$this->form_dbtable])
@@ -218,10 +220,11 @@ Class CrudBootstrap{
 						unset($_SESSION['search'][$this->form_dbtable]['where']);
 						unset($_SESSION['search'][$this->form_dbtable]['history']);
 					}
-				}
+				}*/
 			}
 			
 		}
+		/*
 		else if (@$_SESSION['search'][$this->form_dbtable])
 		{
 			//echo "FIZ FILTRO";
@@ -230,7 +233,7 @@ Class CrudBootstrap{
 			//para o filtro na paginacao
 			$this->historyFiltro = $_SESSION['search'][$this->form_dbtable]['history'];
 			$this->setListWhere($_SESSION['search'][$this->form_dbtable]['where']);
-		}
+		}*/
 	}
 	
 	public function criaFormLogin()
@@ -310,7 +313,7 @@ Class CrudBootstrap{
 						//echo "<table class='table'>";
 							foreach ($this->campos as $campo)
 							{ 
-								
+								$subLabel = "";
 								
 								if ($campo['type'] == 'password'){
 									$e = new Encryption();
@@ -360,7 +363,10 @@ Class CrudBootstrap{
 									
 									//echo "<tr><td>";
 										echo "<div class='form-group".$classreq."' style='margin-bottom: 0px;'>";
-											echo "<label class='control-label' for='id".$campo['name']."'>".$campo['label']."</label>";
+											if (@$campo['subLabel'] != '')
+												$subLabel = " <span style='font-size: 10px; font-weight: 100; color:#ccc;'>".$campo['subLabel']."</span>";
+										
+											echo "<label class='control-label' for='id".$campo['name']."'>".$campo['label']."".@$subLabel."</label>";
 											echo $this->formGeraElemento($campo,$value_text);
 											//echo "<td><input type='".$campo[2]."' name='".$campo[1]."' class='form-control' value='".$value_text."' style='width:".$campo[3]."px'/></td>";
 										echo "</div>";
@@ -406,6 +412,7 @@ Class CrudBootstrap{
 					//echo "<table class='table'>";
 						foreach ($this->campos as $campo)
 						{
+							$subLabel = "";
 							if ($campo['type']!='hidden')
 							{
 								/*
@@ -425,7 +432,10 @@ Class CrudBootstrap{
 									$value='';
 								
 								echo "<div class='form-group".$classreq."' style='margin-bottom: 0px;'>";
-									echo "<label class='control-label' for='id".$campo['name']."'>".$campo['label']."</label>";
+									if (@$campo['subLabel'] != '')
+										$subLabel = " <span style='font-size: 10px; font-weight: 100; color:#ccc;'>".$campo['subLabel']."</span>";
+								
+									echo "<label class='control-label' for='id".$campo['name']."'>".$campo['label']."".@$subLabel."</label>";
 									echo $this->formGeraElemento($campo,$value,true);
 								echo "</div>";
 							}
@@ -454,16 +464,16 @@ Class CrudBootstrap{
 			echo "</div>";
 	}
 	
-	public function criaView($id)
+	public function criaView($id,$btnExtra='')
 	{
 	
-		$path = $this->core->system_path;
+		//$path = $this->core->system_path;
 		$obj = $this->getById($id);
 		
 		echo "<div class='row'>";
-			$link_edit = $path."/".$this->form_class."/edit/".$obj['id'];
+			$link_edit = $this->path."/".$this->form_class."/edit/".$obj['id'];
 			echo "<a href='".$link_edit."'><span class='label label-default' title='Editar'>Editar</span></a> ";
-			echo "<a href='../'><span class='label label-default' title='Voltar para lista'>Ver lista</span></a> ";
+			echo "<a href='../'><span class='label label-default' title='Voltar para lista'>Ver lista</span></a> ".$btnExtra;
 
 			//Se tiver um campo com NOME, escreve grande na tela
 			//if (@$obj['nome'] != '')
@@ -488,7 +498,7 @@ Class CrudBootstrap{
 						foreach ($reltemp as $tmp)
 						{
 							if (@$r['id'] == $tmp)
-								$ret[] = "<a href='".$path."/".$campo['options']."/".@$r['id']."'>".@$r['nome']."</a>";
+								$ret[] = "<a href='".$this->path."/".$campo['options']."/".@$r['id']."'>".@$r['nome']."</a>";
 						}
 					}
 					$value_text = implode(',',$ret);
@@ -502,15 +512,27 @@ Class CrudBootstrap{
 					else
 						$selectLabel = "nome";
 						
-					$relNames = $this->formGetSelectContent($campo['options'],$selectLabel);
+					if (!is_array($campo['options']))
+						$relNames = $this->formGetSelectContent($campo['options'],$selectLabel);
+					else
+						$relNames = $campo['options'];
+						
+					//print_r($relNames);
 					
 					//print_r($relNames);
 					//echo "<p><b>".$campo['label'].":</b> ".$id." </p>";
 					
-					foreach($relNames as $r)
+					foreach($relNames as $v => $r)
 					{
-						if (@$r['id'] == $obj[$campo['name']])
-							echo "<p><b>".$campo['label'].":</b> <a href='".$path."/".$campo['options']."/".@$r['id']."'>".@$r['nome']."</a></p>";
+						//echo $obj[$campo['name']];
+						if (!is_array($r))
+						{
+							//se enviar o array com os options e nao fazer a busca no DB
+							if (@$v == $obj[$campo['name']])
+								echo "<p><b>".$campo['label'].":</b> ".@$r."</p>";
+						}
+						else if (@$r['id'] == $obj[$campo['name']])
+							echo "<p><b>".$campo['label'].":</b> <a href='".$this->path."/".$campo['options']."/".@$r['id']."'>".@$r['nome']."</a></p>";
 					}
 					//print_r($relNames);
 					//$reltemp = $this->getColumnCRUDInfoMulti($campo['idFilhos'],$campo['tableRel'],$campo['idPai'],$id);
@@ -536,12 +558,12 @@ Class CrudBootstrap{
 		return $this->getCRUDInfo($this->form_dbtable,$id);
 	}
 	
-	public function criaFormList($colunas = array('Nome'=>'nome'))
+	public function criaFormList($colunas = array('Nome'=>'nome'),$btnExtra='')
 	{
 		$res = $this->getList("*");
-		$this->botaoCriar();
+		$this->botaoCriar($btnExtra);
 		
-		$path = $this->core->system_path;
+		//$path = $this->core->system_path;
 		
 		
 		if ($res)
@@ -561,8 +583,8 @@ Class CrudBootstrap{
 				echo "</tr>";
 				foreach ($res as $v)
 				{
-					$link_edit = $path."/".$this->form_class."/edit/".$v['id'];
-					$link_view = $path."/".$this->form_class."/".$v['id'];
+					$link_edit = $this->path."/".$this->form_class."/edit/".$v['id'];
+					$link_view = $this->path."/".$this->form_class."/".$v['id'];
 					
 					$btn = "<a href='".$link_edit."'><span class='badge' style='background-color:#cfcfcf' title='Editar'>
 						<span class='fa fa-edit' aria-hidden='true'></span> </span></a>";
@@ -677,10 +699,23 @@ Class CrudBootstrap{
 		//2 = p
 		//3 = numero da pagina
 		
+		/*
 		if (@$this->paginarParametros[2] == 'p')
 		{
 			if (@$this->paginarParametros[3] > 0)
 				$this->paginarStart = ($this->paginarParametros[3] - 1) * $this->paginarMax;
+			else
+				$this->paginarStart = 0;
+		}
+		else
+		{
+			$this->paginarStart = 0;
+		}*/
+		
+		if (@$_GET['p']!='')
+		{
+			if (@$_GET['p'] > 0)
+				$this->paginarStart = ($_GET['p'] - 1) * $this->paginarMax;
 			else
 				$this->paginarStart = 0;
 		}
@@ -700,31 +735,122 @@ Class CrudBootstrap{
 	
 	public function mostraPaginacao()
 	{
-		$path = $this->core->system_path;
+		//$path = $this->core->system_path;
 	
 		//echo "<span class='label label-default' style='cursor:pointer;' ><a href='/listar/p/".$i."' style='color:#fff;'>".$i."</a></span> ";
 		//if ($this->paginarStart == 0)
 		//	$this->paginarStart = 1;
+		
+		
+		$paginasPadding = 5;
+		
+		
+		$keepFiltro = "&".$this->rebuildGETwithoutPages($_SERVER['QUERY_STRING']);
+		
+		//foi enviado alguma pagina na URL?
+		if (@$_GET['p'] == '')
+			$_GET['p']=1;
+		if (@$_GET['p'] != '')
+		{
+		
+			//pega X para a esquerda
+			$paginasEsquerda = $_GET['p'];
+			$paginasEsquerda = $_GET['p']-$paginasPadding;
+			//$paginasEsquerda = $_GET['p']-1;
+			//echo "E: ".$paginasEsquerda;
+			if ($paginasEsquerda <= 0)
+				$paginasEsquerda = 0;
 			
+			//pega Y para a direita
+			$paginasDireita = $_GET['p']+$paginasPadding;
+			//echo "D: ".$paginasDireita;
+			//echo "P: ".$_GET['p'];
+			if ($paginasDireita >= $this->paginarPaginas)
+				$paginasDireita = $this->paginarPaginas;
+				
+			$paginacao = "";
+			
+			$paginacao .= " <span class='label label-default' title='Primeiro (".$this->paginarPaginas.")' style='margin-left: 4px; margin-right: 4px;'><a href='".$this->path."/".$this->form_class."/listar/?p=1".$keepFiltro."' style='color:#fff;'> << </a></span> ";			
+			if ($paginasEsquerda > 0 )
+			{
+				$paginacao .= " <span class='label label-default' title='Ir para o próximo bloco' style='margin-right: 4px'><a href='".$this->path."/".$this->form_class."/listar/?p=".($_GET['p']-$paginasPadding).$keepFiltro."' style='color:#fff;'> < </a></span> ";
+			}
+				for($e=$paginasEsquerda+1;$e<=($_GET['p']-1);$e++)
+				{
+					$paginacao .= "<span class='label label-default' title='Ir para pagina de resultado ".$e."'><a href='".$this->path."/".$this->form_class."/listar/?p=".$e.$keepFiltro."' style='color:#fff;'>".$e."</a></span> ";
+				}
+						
+			
+			$paginacao .= "<span class='label' style='color:#aaa; border: 1px solid #ccc' title='Pagina de resultado atual'>".$_GET['p']."</span> ";
+			
+			if (($paginasDireita-$paginasPadding) < $this->paginarPaginas)
+			{
+				for($d=($_GET['p']+1);$d<=$paginasDireita;$d++)
+				{
+					$paginacao .= "<span class='label label-default' title='Ir para pagina de resultado ".$d."'><a href='".$this->path."/".$this->form_class."/listar/?p=".$d.$keepFiltro."' style='color:#fff;'>".$d."</a></span> ";
+				}
+				if ( ($_GET['p']+$paginasPadding) <= ($this->paginarPaginas))
+				{
+					$paginacao .= " <span class='label label-default' title='Ir para o próximo bloco' style='margin-right: 4px;'><a href='".$this->path."/".$this->form_class."/listar/?p=".($_GET['p']+$paginasPadding).$keepFiltro."' style='color:#fff;'> > </a></span> ";
+				}
+			}	
+			$paginacao .= " <span class='label label-default' title='Último (".$this->paginarPaginas.")'><a href='".$this->path."/".$this->form_class."/listar/?p=".$this->paginarPaginas.$keepFiltro."' style='color:#fff;'> >> </a></span> ";
+				
+			echo $paginacao;
+			echo "<hr/>";
+		}
+		else
+		{
+		
+		
+		}
+		
+		/*	
 		for($i=1;$i<=$this->paginarPaginas;$i++)
 		{
 			//foi enviado alguma pagina na URL?
-			if (@$this->paginarParametros[3] != '')
+			if (@$_GET['p'] != '')
 			{
-				if (@$this->paginarParametros[3] == $i)
+				$keepFiltro = "&".$this->rebuildGETwithoutPages($_SERVER['QUERY_STRING']);
+			
+				if (@$_GET['p'] == $i)
 					echo "<span class='label' style='color:#aaa; border: 1px solid #ccc' title='Pagina de resultado atual'>".$i."</span> ";
 				else
-					echo "<span class='label label-default' title='Ir para pagina de resultado ".$i."'><a href='".$path."/".$this->form_class."/listar/p/".$i."' style='color:#fff;'>".$i."</a></span> ";
+					echo "<span class='label label-default' title='Ir para pagina de resultado ".$i."'><a href='".$this->path."/".$this->form_class."/listar/?p=".$i.$keepFiltro."' style='color:#fff;'>".$i."</a></span> ";
 			}
 			else
-			{//nada na URL
+			{
+				$keepFiltro = "&".$this->rebuildGETwithoutPages($_SERVER['QUERY_STRING']);
+			
 				if (($this->paginarStart == 0) && ($i == 1))
 					echo "<span class='label' style='color:#aaa; border: 1px solid #ccc' title='Pagina de resultado atual'>".$i."</span> ";
 				else
-					echo "<span class='label label-default' title='Ir para pagina de resultado ".$i."'><a href='".$path."/".$this->form_class."/listar/p/".$i."' style='color:#fff;'>".$i."</a></span> ";
+					echo "<span class='label label-default' title='Ir para pagina de resultado ".$i."'><a href='".$this->path."/".$this->form_class."/listar/?p=".$i.$keepFiltro."' style='color:#fff;'>".$i."</a></span> ";
 			}
 		}
 		//echo "| >";
+		*/
+	}
+	
+	public function rebuildGETwithoutPages($query)
+	{
+		
+		$g = array();
+		$que = explode('&',$query);
+		
+		//print_r($que);
+
+		foreach($que as $q)
+		{
+			if (!empty($q)){
+				if ($q[0] != 'p')
+					$g[] = $q;
+			}
+		}
+		
+		$ret = implode("&",$g);
+		return $ret;
+	
 	}
 	
 	public function setListWhere($where = '')
@@ -792,28 +918,33 @@ Class CrudBootstrap{
 		";
 	}
 	
-	public function botaoCriar()
+	public function botaoCriar($btnExtra='')
 	{
-		$path = $this->core->system_path;
+		//$path = $this->core->system_path;
+		//$path = Core::$system_path;
 		
 		//para o botao filtro ficar verde quando tiver filtro ativo
-		if (@$this->historyFiltro != '')
+		//if (@$this->historyFiltro != '')
+		if (@$_GET['crud'] == 'filtro')
 			$corFiltro = 'success';
 		else
 			$corFiltro = 'default';
 		
 		echo "<div id='divBotoes' style='clear:both;'>";
-			echo "<span class='label label-default' style='cursor:pointer;' title='Criar novo'><a href='".$path."/".$this->form_class."/add/' style='color:#fff;'>Adicionar</a></span>";
+			echo "<span class='label label-default' style='cursor:pointer;' title='Criar novo'><a href='".$this->path."/".$this->form_class."/add/' style='color:#fff;'>Adicionar</a></span>";
 			echo " <span class='label label-".$corFiltro."' style='cursor:pointer;' title='Mostrar filtro'><a href='#' id='btnFiltro' style='color:#fff;'>Filtro</a></span>";
+			if ($btnExtra != '')
+				echo " ".$btnExtra;
 		echo "</div>";
 	}
 	
 	public function criaFiltro()
 	{
-		$path = $this->core->system_path;
+		//$path = $this->core->system_path;
+		//$path = Core::$system_path;
 		
 		echo "<div id='divFiltro' style='display:none;'>";
-			echo "<form action='".$path."/".$this->form_class."/listar/' method='post' class='navbar-form navbar-left' id='filterForm'>";
+			echo "<form action='".$this->path."/".$this->form_class."/listar/' method='get' class='navbar-form navbar-left' id='filterForm'>";
 				echo "<input type='hidden' value='filtro' name='crud'/>";
 				echo "<table class='table'>";
 				
@@ -831,16 +962,33 @@ Class CrudBootstrap{
 									if ($campo['type'] != 'selectRel')
 									{
 										//ajusta o filtro caso não venha nada, colocar o padrão (se setado)
+										
+										if (@$_GET['crud'] == 'filtro')
+											$value=$_GET[$campo['name']];
+										else
+										{
+											$value='';
+											//$value=@$campo['default'];
+										}
+										/*
 										if (($this->historyFiltro[$campo['name']] == '') && (@$campo['default']!=''))
 											$value=$campo['default'];
 										else
 											$value=$this->historyFiltro[$campo['name']];
-										
-										echo "<td>".$this->formGeraElemento($campo,$value,true,true)."</td>";
+										*/
+										echo "<td>".$this->formGeraElemento($campo,$value,true,true,true)."</td>";
 									}
 									else
-										echo "<td>".$this->formGeraElemento($campo,$this->historyFiltro[$campo['name']]['values'],false,true)."</td>";
-										
+									{
+										//print_r($_GET);
+										if (@$_GET['crud'] == 'filtro')
+											$value=@$_GET[$campo['name']];
+										else
+											$value=@$campo['default'];
+									
+										//echo "<td>".$this->formGeraElemento($campo,$this->historyFiltro[$campo['name']]['values'],false,true)."</td>";
+										echo "<td>".$this->formGeraElemento($campo,$value,false,true,true)."</td>";
+									}	
 								echo "</tr>";
 							
 							}
@@ -892,7 +1040,7 @@ Class CrudBootstrap{
 		
 	}
 	
-	public function formGeraElemento($campo,$value,$primeiroBranco=false,$ignoraRequired=false)
+	public function formGeraElemento($campo,$value,$primeiroBranco=false,$ignoraRequired=false,$fromFiltro=false)
 	{
 		//print_r($value);
 		
@@ -945,7 +1093,12 @@ Class CrudBootstrap{
 			$return_sel .= "<select name='".$campo['name']."' style='width:".$size."' class='form-control ".@$campo['class']."' ".$req.">";
 			
 			if ($primeiroBranco)
-				$return_sel .= "<option value='' selected>&nbsp;</option>";
+			{
+				if ($value == '')
+					$return_sel .= "<option value='' selected>&nbsp;</option>";
+				else
+					$return_sel .= "<option value=''>&nbsp;</option>";
+			}
 				
 			if ($sel)
 			{
@@ -958,10 +1111,20 @@ Class CrudBootstrap{
 						else
 							$return_sel .= "<option value='".$s['id']."'>".$s[$selectLabel]."</option>";
 					}else{
-						if ($value == $v)
-							$return_sel .= "<option value='".$v."' selected>".$s."</option>";
+						if ($fromFiltro)
+						{
+							if (($value == $v) && ($value != ''))
+								$return_sel .= "<option value='".$v."' selected>".$s."</option>";
+							else
+								$return_sel .= "<option value='".$v."'>".$s."</option>";
+						}
 						else
-							$return_sel .= "<option value='".$v."'>".$s."</option>";
+						{
+							if ($value == $v)
+								$return_sel .= "<option value='".$v."' selected>".$s."</option>";
+							else
+								$return_sel .= "<option value='".$v."'>".$s."</option>";
+						}
 					}
 				
 				}
@@ -1274,7 +1437,7 @@ Class CrudBootstrap{
 	
 	public function getColumnCRUDInfo($col,$table,$id,$relURL='')
 	{
-		$path = $this->core->system_path;
+		//$path = $this->core->system_path;
 		
 		$sql = "SELECT ".$col." FROM ".$table." WHERE id = ".$id.";";
 		
@@ -1282,7 +1445,7 @@ Class CrudBootstrap{
 		{
 			$res = $this->bdconn->select($sql);
 			if ($relURL != '')
-				return "<a href='".$path."/".$relURL."/".$id."'>".$res[0][$col]."</a>";
+				return "<a href='".$this->path."/".$relURL."/".$id."'>".$res[0][$col]."</a>";
 			else
 				return $res[0][$col];
 		}
@@ -1293,9 +1456,7 @@ Class CrudBootstrap{
 	public function getCRUDInfo($table,$id)
 	{
 		$sql = "SELECT * FROM ".$table." WHERE id = ".$id.";";
-		
 		$res = $this->bdconn->select($sql);
-		
 		return $res[0];
 	}
 
