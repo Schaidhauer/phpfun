@@ -9,8 +9,8 @@ Class Html{
 	public $menu;
 	//public $top_search_action;
 	public $login;
-	public $orientacao;
-	public $orientacao_horizontais;
+	//public $orientacao;
+	//public $orientacao_horizontais;
 	public $atual;
 	
 	public $customCSS = "";
@@ -29,7 +29,7 @@ Class Html{
 		//$this->top_search_action = $core_config['top_search_action'];
 		//$this->orientacao_horizontais = $core_config['tela_horizontal'];
 		//$this->defineOrientacao($core_config['tela_horizontal']);
-		$this->orientacao = 'v';
+		//$this->orientacao = 'v';
 		$this->mostraMenuEsquerda = true;
 		$this->path = $path;
 		
@@ -51,7 +51,7 @@ Class Html{
 		{
 			foreach($res as $f)
 			{
-				$favoritos[]=array('label'=>$f['title'],'icon'=>'fa-star','link'=>'wiki.php?id='.$f['id']);
+				$favoritos[]=array('label'=>$f['title'],'icon'=>'fa-star','link'=>'wiki/'.$f['id']);
 			}
 			$this->menu[] = array('label'=>'Favoritos','icon'=>'fa-star','id'=>'idFav','dropdown'=>$favoritos);
 		}
@@ -66,26 +66,6 @@ Class Html{
 	{
 		$this->mostraMenuEsquerda = $show;
 	}
-	
-	public function setOrientacao($o = 'v')
-	{
-		$this->orientacao = $o;
-	}
-	
-	/*
-	public function defineOrientacao(){
-		//$atual = basename($_SERVER['PHP_SELF']);
-		$atual = $this->atual."/".$this->atualSegundo;
-		echo "ATUAL: ".$atual;
-		$this->orientacao = 'v';
-		
-		foreach($this->orientacao_horizontais as $o)
-		{
-			if ($o == $atual)
-				$this->orientacao = 'h';
-		
-		}
-	}*/
 	
 	public function changeTitle($title)
 	{
@@ -160,7 +140,7 @@ Class Html{
 				<span class='icon-bar'></span>
 				<span class='icon-bar'></span>
 			</button>
-			<a class='navbar-brand' href='index.html'>".$this->title."</a>
+			<a class='navbar-brand' href='".$this->path."/'>".$this->title."</a>
 		</div>
 		<!-- /.navbar-header -->
 		
@@ -417,17 +397,8 @@ Class Html{
 		
 	}
 	
-	public function menuLateral(){
-
-		//$atual = basename($_SERVER['PHP_SELF']);
-		
-		/*
-		if ($this->orientacao == 'v')
-			$nav_options = "nav navbar-nav side-nav";
-		else
-			$nav_options = "nav navbar-left top-nav";
-		*/
-		
+	public function menuLateral()
+	{		
 		if ($this->mostraMenuEsquerda)
 			$nav_options = "";
 		else
@@ -443,12 +414,9 @@ Class Html{
 				
 				
 		echo "  </ul>
-				
 			</div>
 		</div>
-		
 		";
-
 	}
 	
 	public function nav(){
@@ -521,10 +489,12 @@ Class Html{
 	
 	function montaOpcoesMenuInterno()
 	{
-		//$this->defineOrientacao();
-		//$atual = basename($_SERVER['PHP_SELF']);
-		$atual = $this->atual;
+		if ($this->atualSegundo == '')
+			$atual = $this->atual;
+		else
+			$atual = $this->atualSegundo;
 		//echo "[usando atual: ".$atual."]";
+		//echo "[usando atualSegundo: ".$this->atualSegundo."]";
 		
 		$h_menu = "";
 		foreach ($this->menu as $m)
@@ -594,23 +564,23 @@ Class Html{
 							$lis_trd .= $this->montaOpcaoMenu($trd['label'],$trd['icon'],$trd['link'],$atual);
 						}
 						
-						if ($this->orientacao == 'h'){
-							$lis .= $this->dropDownHorizontal($sub['label'],$sub['icon'],$lis_trd,'',$atual,true);
-						}else{
+						//if ($this->orientacao == 'h'){
+						//	$lis .= $this->dropDownHorizontal($sub['label'],$sub['icon'],$lis_trd,'',$atual,true);
+						//}else{
 							$lis .= $this->dropDownVertical($sub['label'],$sub['icon'],$lis_trd,'',$atual,true,$netoHighlight);
-						}
+						//}
 						
 					}
 					else
 						$lis .= $this->montaOpcaoMenu($sub['label'],$sub['icon'],$sub['link'],$atual);
 				}
 				//tratamento para esconder o menu lateral em certas paginas.
-				if ($this->orientacao == 'h'){
-					$h_menu .= $this->dropDownHorizontal($m['label'],$m['icon'],$lis,'',$atual);
-				}else{
+				//if ($this->orientacao == 'h'){
+				//	$h_menu .= $this->dropDownHorizontal($m['label'],$m['icon'],$lis,'',$atual);
+				//}else{
 					//$h_menu .= $this->dropDownVertical($m['label'],$m['icon'],$lis,$m['id'],$m['linkdrop'],$atual);
 					$h_menu .= $this->dropDownVertical($m['label'],$m['icon'],$lis,'',$atual,false,$paiHighlight);
-				}
+				//}
 			
 			}
 		}
@@ -760,7 +730,7 @@ Class Html{
 	
 	}
 	
-	function bodyEndBlank($jquery){
+	function bodyEndBlank($jquery=''){
 		
 		echo "
 			".$this->jsLibs()."
@@ -772,7 +742,7 @@ Class Html{
 	
 	}
 	
-	function bodyEnd($jquery)
+	function bodyEnd($jquery='')
 	{
 		echo "
 		
