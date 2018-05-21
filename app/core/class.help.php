@@ -80,6 +80,18 @@ Class Help{
         return $data;
     }
 
+    function datetimeBRtoEN($data,$noHour=false){
+        $datas = explode(" ",$data);
+        
+        $data1 = explode("/",$datas[0]);
+        $hora = explode(":",$datas[1]);
+		if ($noHour)
+			$data = $data1[2]."-".$data1[1]."-".$data1[0];
+		else
+			$data = $data1[2]."-".$data1[1]."-".$data1[0]." ".$hora[0].":".$hora[1].":".$hora[2];
+        return $data;
+    }
+
     function datetimeENtoBR($data,$noHour=false){
         $datas = explode(" ",$data);
         
@@ -261,6 +273,14 @@ Class Help{
 		}
 
 		return false;
+	}
+	
+	function convertToReadableSize($size)
+	{
+		$base = log($size) / log(1024);
+		$suffix = array("", " KB", " MB", " GB", " TB");
+		$f_base = floor($base);
+		return round(pow(1024, $base - floor($base)), 1) . $suffix[$f_base];
 	}
 	
 }
