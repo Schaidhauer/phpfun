@@ -202,9 +202,19 @@ Class Help{
 		}
 	}
 	
+	function horasAgo($time1)
+	{
+		$time2 = strtotime(date("m/d/Y H:i:s"));
+		
+		$x = $time2 - $time1;
+		$horas = ($x/60)/60;
+		return round($horas);
+	}	
 	
-	function time_ago($date) {
-		if (empty($date)) {
+	function time_ago($date)
+	{
+		if (empty($date))
+		{
 			return "No date provided";
 		}
 		$periods = array("segundo", "minuto", "hora", "dia", "semana", "mes", "ano", "decada");
@@ -212,18 +222,21 @@ Class Help{
 		$now = time();
 		$unix_date = strtotime($date);
 		// check validity of date
-		if (empty($unix_date)) {
+		if (empty($unix_date))
+		{
 			return "Bad date";
 		}
 		// is it future date or past date
-		if ($now > $unix_date) {
+		if ($now > $unix_date)
+		{
 			$difference = $now - $unix_date;
 			$tense = "atrás";
 		} else {
 			$difference = $unix_date - $now;
 			$tense = "agora";
 		}
-		for ($j = 0; $difference >= $lengths[$j] && $j < count($lengths) - 1; $j++) {
+		for ($j = 0; $difference >= $lengths[$j] && $j < count($lengths) - 1; $j++)
+		{
 			$difference /= $lengths[$j];
 		}
 		$difference = round($difference);
