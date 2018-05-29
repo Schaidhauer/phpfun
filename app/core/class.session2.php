@@ -37,37 +37,39 @@ Class Sessao{
 	{
         //$this->Sessao();
 
-        $_SESSION['_expira'] = 3600;//1 hora
+        $_SESSION['_expira'] = 9600;
         $_SESSION['_session_start'] = time();
 		$_SESSION['_session_id'] = session_id();
 	}
 
-    function validaSessao()
+    function validaSessao($validar=true)
 	{
-		//verifica se tem sessao montada antes de tudo
-        if (isset($_SESSION['_idUsuario']))
+		if ($validar)
 		{
-        	$tempo_sessao = time() - @$_SESSION['_session_start'];
-            if($tempo_sessao > @$_SESSION['_expira'])
+			//verifica se tem sessao montada antes de tudo
+			if (isset($_SESSION['_idUsuario']))
 			{
-            	session_destroy();
-                //redireciona para uma pagina de saida
-                header("Location: ".$this->loginPage);
+				$tempo_sessao = time() - @$_SESSION['_session_start'];
+				if($tempo_sessao > @$_SESSION['_expira'])
+				{
+					session_destroy();
+					//redireciona para uma pagina de saida
+					header("Location: ".$this->loginPage);
+				}
+				else
+				{
+					$this->renovarSessao();
+					//$this->get();
+					
+				}
 			}
 			else
 			{
-				$this->renovarSessao();
-                //$this->get();
-				
-            }
-        }
-		else
-		{
-        	session_destroy();
-            header("Location: ".$this->loginPage);
-            exit;
-        }
-		
+				session_destroy();
+				header("Location: ".$this->loginPage);
+				exit;
+			}
+		}
 		session_write_close();
 	}
 
