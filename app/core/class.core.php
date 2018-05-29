@@ -153,8 +153,14 @@ Class Core{
 				{
 					//pode ser que o método não exista
 					//mas vamos ver se não é um segundo parametro, tratar isso no metodo VIEW
-					call_user_func_array(array($page, 'view'), array_merge(array($this->http_method),$this->http_args)); 
-					
+					//validar antes o http_args, pois pode ser um ? (do GET)
+					if (is_array(@$this->http_args))
+						call_user_func_array(array($page, 'view'), array_merge(array($this->http_method),$this->http_args)); 
+					else
+					{
+						//é sinal que é um meotodo que nao existe, e provavelmente um '?', entao tentar enviar pro padrao
+						call_user_func(array($page, "listar"));
+					}
 					
 					/*
 					//não existe, da um erro.
