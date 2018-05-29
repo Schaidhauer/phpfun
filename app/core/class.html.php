@@ -1,7 +1,5 @@
 <?php
 
-	
-
 Class Html{
 
 	public $title;
@@ -133,7 +131,7 @@ Class Html{
 	public function menuSuperior()
 	{
 		return "
-		<div class='navbar-header'>
+		<div class='navbar-header' style='width: 251px; border-right:1px solid #e7e7e7;'>
 			<button type='button' class='navbar-toggle' data-toggle='collapse' data-target='.navbar-collapse'>
 				<span class='sr-only'>Toggle navigation</span>
 				<span class='icon-bar'></span>
@@ -141,7 +139,19 @@ Class Html{
 				<span class='icon-bar'></span>
 			</button>
 			<a class='navbar-brand' href='".$this->path."/'>".$this->title."</a>
+			<a class='navbar-brand' href='javascript:return false;' id='escondeMenu' title='Esconde/Mostrar Menu lateral' style='float:right;'><i class='fa fa-list fa-fw'></i> </a>
+			
 		</div>
+		<form action='".$this->path."/search/' method='get' class='navbar-form' style='float:left;' id='formSearch'>
+			<div class='input-group custom-search-form'>
+				<input type='text' name='s' class='form-control' placeholder='Search...' value='".@$_GET['s']."' style='width: 100%; min-width: 300px;'>
+				<span class='input-group-btn'>
+				<button class='btn btn-default' type='button' id='idBtnSearch'>
+					<i class='fa fa-search'></i>
+				</button>
+			</span>
+			</div>
+		</form>
 		<!-- /.navbar-header -->
 		
 		<ul class='nav navbar-top-links navbar-right'>
@@ -378,9 +388,10 @@ Class Html{
 	
 		return "
 			
-			<li><a href='#' id='escondeMenu'><i class='fa fa-list fa-fw'></i> </a></li>
+			<!--<li><a href='javascript:return false;' id='escondeMenu2'><i class='fa fa-list fa-fw'></i> </a></li>-->
 			
-			<li class='sidebar-search'".@$escondeMenuCss.">
+			<!--
+			<li class='sidebar-search'".@$escondeMenuCss." style='padding: 0px; '>
 				<form action='".$this->path."/search/' method='get' class='navbar-form'>
 					<div class='input-group custom-search-form'>
 						<input type='text' class='form-control' placeholder='Search...'>
@@ -391,8 +402,8 @@ Class Html{
 					</span>
 					</div>
 				</form>
-				<!-- /input-group -->
-			</li>
+				
+			</li>-->
 		";
 		
 	}
@@ -556,6 +567,7 @@ Class Html{
 				$lis_trd = "";
 				foreach($m['dropdown'] as $sub)
 				{
+					$lis_trd = "";
 					//verificar se tem mais um nivel de dropdown
 					if (@$sub['dropdown'])
 					{
@@ -765,6 +777,12 @@ Class Html{
 		echo "
 		<script>
 		$( document ).ready(function() {
+			
+			$('#idBtnSearch').click(function()
+			{
+				$('#formSearch').submit();
+			});
+			
 			
 			$('#escondeMenu').click(function()
 			{
