@@ -137,12 +137,18 @@ Class CrudBootstrap{
 			if (@$_POST['crud'] == 'edit')
 			{
 				$this->editCRUD($_POST['id'],$post);
-				echo "<div class='alert alert-success' style='text-align: center;'>Editado com sucesso! <a href='".$_POST['id']."'>Visualizar</a></div>";
+				if ($this->crudError == "")
+					echo "<div class='alert alert-success' style='text-align: center;'>Editado com sucesso! <a href='".$_POST['id']."'>Visualizar</a></div>";
+				else
+					echo $this->crudError;
 			}
 			else if (@$_POST['crud'] == 'add')
 			{
 				$last_id = $this->insertCRUD($post);
-				echo "<div class='alert alert-success' style='text-align: center;'>Criado com sucesso! <a href='".$last_id."'>Visualizar</a></div>";
+				if ($this->crudError == "")
+					echo "<div class='alert alert-success' style='text-align: center;'>Criado com sucesso! <a href='".$last_id."'>Visualizar</a></div>";
+				else
+					echo $this->crudError;
 			}
 			else if (@$_POST['crud'] == 'login')
 			{
@@ -171,11 +177,17 @@ Class CrudBootstrap{
 								$relacionamentos = " SELECT ".$v['idPai']." FROM ".$v['tableRel']." WHERE ".$v['idFilhos']." IN (".$rel_join.") ";
 								//echo $relacionamentos;
 								$res = $this->bdconn->select($relacionamentos);
+							
+								foreach($res as $rr)
+								{
+									$res_array[] = $rr[$v['idPai']];
+								}
 								
 								//existe relacionamentos
 								if ($res)
 								{
-									$rels = implode(',',$res[0]);
+									//print_r($res);
+									$rels = implode(',',$res_array);
 									
 									//agrega os IDs do pai na consulta principal
 									$w[] = " id IN (".$rels.") ";
@@ -877,7 +889,7 @@ Class CrudBootstrap{
 		if ($this->paginar)
 			$sql = $sql.$this->paginarQuery;
 		
-		echo $sql; 
+		//echo $sql; 
 		
 		$res = $this->bdconn->select($sql);
 		
@@ -1309,9 +1321,19 @@ Class CrudBootstrap{
 		$sql = rtrim($sql,",");
 		$sql .=  " WHERE id=".$id.";";
 
-		//echo $sql;
+		/*
+		echo "<pre>";
+		echo htmlentities($sql);
+		echo "</pre>";
+		*/
 		//die();
 		$this->bdconn->executa($sql);
+		
+		$this->crudError = "";
+		
+		if ($this->bdconn->error())
+			$this->crudError .= "<p style='color:red'>ERRO NA QUERY: ".htmlentities($sql)." - Retorno mysql:".$this->bdconn->error()."</p>";
+		
 		
 		if ($contem_relacionamentos)
 		{
@@ -1321,12 +1343,16 @@ Class CrudBootstrap{
 			foreach($rel_delete as $del)
 			{
 				$this->bdconn->executa($del);
+				if ($this->bdconn->error())
+					$this->crudError .= "<p style='color:red'>ERRO NA QUERY: ".htmlentities($sql)." - Retorno mysql:".$this->bdconn->error()."</p>";
 			}
 			
 			
 			foreach ($rel_inserts as $ins)
 			{
 				$this->bdconn->executa($ins.$id.")");
+				if ($this->bdconn->error())
+					$this->crudError .= "<p style='color:red'>ERRO NA QUERY: ".htmlentities($sql)." - Retorno mysql:".$this->bdconn->error()."</p>";
 			}
 		}
 
@@ -1445,8 +1471,13 @@ Class CrudBootstrap{
 		
 		//echo $sql;
 		//die();
+		$this->crudError = "";
 		
 		$last_id = $this->bdconn->insert($sql);
+		if ($this->bdconn->error())
+			$this->crudError .= "<p style='color:red'>ERRO NA QUERY: ".htmlentities($sql)." - Retorno mysql:".$this->bdconn->error()."</p>";
+			
+			
 		//pega o retorno do INSERT
 		//$last_id = 0;
 		
@@ -1460,6 +1491,8 @@ Class CrudBootstrap{
 			foreach ($rel_inserts as $ins)
 			{
 				$this->bdconn->executa($ins.$last_id.")");
+				if ($this->bdconn->error())
+					$this->crudError .= "<p style='color:red'>ERRO NA QUERY: ".htmlentities($sql)." - Retorno mysql:".$this->bdconn->error()."</p>";
 			}
 		}
 		
