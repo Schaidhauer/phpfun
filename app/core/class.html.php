@@ -24,10 +24,7 @@ Class Html{
 		$this->sysDescricao    = $html_config['sysDescricao'];
 		$this->sysAutor        = $html_config['sysAutor'];
 		$this->favicon         = $html_config['favicon'];
-		//$this->top_search_action = $core_config['top_search_action'];
-		//$this->orientacao_horizontais = $core_config['tela_horizontal'];
-		//$this->defineOrientacao($core_config['tela_horizontal']);
-		//$this->orientacao = 'v';
+		
 		$this->mostraMenuEsquerda = true;
 		$this->path = $path;
 		
@@ -500,10 +497,12 @@ Class Html{
 	
 	function montaOpcoesMenuInterno()
 	{
-		if ($this->atualSegundo == '')
+		//if ($this->atualSegundo == '')
 			$atual = $this->atual;
-		else
-			$atual = $this->atualSegundo;
+		//else
+		//	$atual = $this->atualSegundo;
+			
+			
 		//echo "[usando atual: ".$atual."]";
 		//echo "[usando atualSegundo: ".$this->atualSegundo."]";
 		
@@ -516,11 +515,12 @@ Class Html{
 			}
 			else if (@$m['dropdown'])
 			{
-				$paiHighlight = false;
-				$netoHighlight = false;
+				//$paiHighlight = false;
+				//$netoHighlight = false;
+				
 				//foreach para prever selecionando um filho, deixar highlight no pai
 				//usar o extra_highlights ou query_highlights
-				foreach($m['dropdown'] as $d)
+				/*foreach($m['dropdown'] as $d)
 				{
 					//echo $d['link'];
 					//se um dor filhos for o highlight, o pai deve expandir (colocando classe IN)
@@ -543,30 +543,15 @@ Class Html{
 						}
 					}
 					//	$atual = $m['linkdrop'];
-				}
-				/*
-				if (@$m['extra_highlights'])
-				{
-					foreach(@$m['extra_highlights'] as $h)
-					{
-						//if ($atual == $h)
-							//$atual = $m['linkdrop'];
-					}
-				}
-				if (@$m['query_highlights'])
-				{
-					foreach(@$m['query_highlights'] as $q)
-					{
-						$atual_param = $_SERVER['QUERY_STRING'];
-						if ($atual_param == $q)
-							$atual = $atual."?".$atual_param; 
-					}
 				}*/
 				
 				$lis = "";
 				$lis_trd = "";
 				foreach($m['dropdown'] as $sub)
 				{
+					$paiHighlight = false;
+					$netoHighlight = false;
+				
 					$lis_trd = "";
 					//verificar se tem mais um nivel de dropdown
 					if (@$sub['dropdown'])
@@ -574,25 +559,23 @@ Class Html{
 						foreach($sub['dropdown'] as $trd)
 						{
 							$lis_trd .= $this->montaOpcaoMenu($trd['label'],$trd['icon'],$trd['link'],$atual);
+							
+							if ($atual == $trd['link'])
+							{
+								$paiHighlight = true;
+								$netoHighlight = true;
+							}
+							
 						}
 						
-						//if ($this->orientacao == 'h'){
-						//	$lis .= $this->dropDownHorizontal($sub['label'],$sub['icon'],$lis_trd,'',$atual,true);
-						//}else{
-							$lis .= $this->dropDownVertical($sub['label'],$sub['icon'],$lis_trd,'',$atual,true,$netoHighlight);
-						//}
-						
+						$lis .= $this->dropDownVertical($sub['label'],$sub['icon'],$lis_trd,'',$atual,true,$netoHighlight);						
 					}
 					else
 						$lis .= $this->montaOpcaoMenu($sub['label'],$sub['icon'],$sub['link'],$atual);
 				}
-				//tratamento para esconder o menu lateral em certas paginas.
-				//if ($this->orientacao == 'h'){
-				//	$h_menu .= $this->dropDownHorizontal($m['label'],$m['icon'],$lis,'',$atual);
-				//}else{
-					//$h_menu .= $this->dropDownVertical($m['label'],$m['icon'],$lis,$m['id'],$m['linkdrop'],$atual);
-					$h_menu .= $this->dropDownVertical($m['label'],$m['icon'],$lis,'',$atual,false,$paiHighlight);
-				//}
+				
+				$h_menu .= $this->dropDownVertical($m['label'],$m['icon'],$lis,'',$atual,false,$paiHighlight);
+				
 			
 			}
 		}
@@ -627,6 +610,9 @@ Class Html{
 		
 		if (sizeof($this->session->permissoes)>0)
 		{
+			if (in_array('*', $this->session->permissoes))
+				return $menu;
+				
 			if (in_array($link, $this->session->permissoes))
 				return $menu;
 			else
@@ -704,7 +690,7 @@ Class Html{
 			$menu = "<li>";
 		
 		//<a href='javascript:;' data-toggle='collapse' data-target='#".$id."'><i class='fa fa-fw ".$icon."'></i>".$arrow." ".$label." <i class='fa fa-fw fa-caret-down'></i></a>
-		return $menu."
+		$menu = $menu."
 		
 			<a href='#' title='".$label."'><i class='fa ".$icon." fa-fw'></i> <span class='menuTitles'".@$escondeMenuCss.">".$label."<span class='fa arrow'></span></span></a>
 			<ul class='nav ".$class_drop."'>
@@ -713,6 +699,27 @@ Class Html{
 		</li>
 		
 		";
+		
+		if ($lis != '')
+			return $menu;
+		else
+			return "";
+		
+		/*
+		if (sizeof($this->session->permissoes)>0)
+		{
+			if (in_array('*', $this->session->permissoes))
+				return $menu;
+				
+			if (in_array($link, $this->session->permissoes))
+				return $menu;
+			else
+				return "";
+		}
+		else
+		{
+			return $menu;
+		}*/
 
 	}
 	
