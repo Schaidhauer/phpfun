@@ -63,12 +63,23 @@ Class Core{
 	
 	public function checkPermissions()
 	{
-		$permissoes_deste_usuario = $this->session->permissoes;
+		$permissoes_deste_usuario = self::$session->permissoes;
 		
-		if (in_array($this->cmd[0], $permissoes_deste_usuario))
-			return true;
+		//bypass nas rotinas de executar
+		//se tem alguma permissao dai sim vai validar, se vier em branco, nao tem problema meu amigo
+		if (sizeof($permissoes_deste_usuario))
+		{
+			//print_r($permissoes_deste_usuario);
+			if (in_array('*', $permissoes_deste_usuario))
+				return true;
+				
+			if (in_array($this->cmd[0], $permissoes_deste_usuario))
+				return true;
+			else
+				return false;
+		}
 		else
-			return false;
+			return true;
 		
 	}
 	
@@ -78,23 +89,22 @@ Class Core{
 		$file    = "app/views/".$this->cmd[0].".php";
 		$control = "app/controls/control.".$this->cmd[0].".php";
 		
-		//se as permissoes por classes estiverem ativas
-		if (!$this->config->config['allowAllClasses'])
-			$canRedir = $this->checkPermissions();
-		else
-			$canRedir = true;
+		$canRedir = true;
 		
+		if ($this->cmd[0] != 'login')
+		{
+			//se as permissoes por classes estiverem ativas
+			if (!$this->config->config['allowAllClasses'])
+				$canRedir = $this->checkPermissions();
+		}
 		
-		if ((file_exists($file) == true) && $canRedir)
+		if ((file_exists($file) == true) && ($canRedir))
 		{
 			require_once($file);
 			
 			if (file_exists($control) == true)
 				require_once($control);
 			
-			
-			//fazer o uso do method_exists aqui, ou is_callable.
-			//o filtro dentro das classes nao pode ser via __call, tem que ser menos complexo dentro de cada classe.
 			
 			$page = new $this->cmd[0];
 			
@@ -105,7 +115,6 @@ Class Core{
 			{
 				//metodo padrao
 				call_user_func(array($page, "listar"));
-			
 			}
 			else
 			{
@@ -117,37 +126,16 @@ Class Core{
 					//agora verificamos se o metodo existe mesmo (ignorando o call, este vai ser o papel deste if para nao precisar definir __call em todas as views - que é um saco)
 					if (method_exists($page, $this->http_method))
 					{
-						//se existir e for em branco, enviar para o metodo padrao
-						//if (($this->http_method == "") || ($this->http_method == " "))
-						//	call_user_func(array($page, "listar"));
-						//else
-						//{
-							if ($this->http_argumentos == 2)
-							{
-								call_user_func(array($page, $this->http_method));
-							}
-							else if ($this->http_argumentos > 2)
-							{
-								call_user_func_array(array($page, $this->http_method), $this->http_args); 
-							}
-						//}
+						if ($this->http_argumentos == 2)
+						{
+							call_user_func(array($page, $this->http_method));
+						}
+						else if ($this->http_argumentos > 2)
+						{
+							call_user_func_array(array($page, $this->http_method), $this->http_args); 
+						}
 					}
 					
-				
-					/*
-					if ($http_argumentos == 1)
-						call_user_func(array($page, " "));
-					else if ($http_argumentos == 2)
-						call_user_func(array($page, $this->cmd[1]));
-					else if ($http_argumentos > 2)
-					{
-						for($i=2;$i<$http_argumentos;$i++)
-						{
-							$args[] = $this->cmd[$i];
-						}
-						call_user_func_array(array($page, $this->cmd[1]), $args); 
-					}
-					*/
 				}
 				else
 				{
@@ -161,17 +149,9 @@ Class Core{
 						//é sinal que é um meotodo que nao existe, e provavelmente um '?', entao tentar enviar pro padrao
 						call_user_func(array($page, "listar"));
 					}
-					
-					/*
-					//não existe, da um erro.
-					//call_user_func(array($page, "listar"));
-					self::$html->head();
-					self::$html->bodyBegin();
-						echo "Página não existe (".$this->http_method.")";
-					self::$html->bodyEnd(@$jquery);
-					*/
 				}
 			}
+			
 		}
 		else
 		{
@@ -185,20 +165,14 @@ Class Core{
 			else
 			{
 				//Se for algo que nao existe, pagina de erro
-				/*$this->html = new HTML($this->config->config_menu,$this->config->config_html,$this->system_path);
-				
-				$this->html->head();
-				$this->html->bodyBeginBlank();
-				$this->html->mensagemErro();
-				$this->html->bodyEndBlank(@$jquery);
-				*/
-				
 				self::$html = new HTML($this->config->config_menu,$this->config->config_html,self::$system_path);
-				
+					
 				self::$html->head();
 				self::$html->bodyBeginBlank();
 				self::$html->mensagemErro();
 				self::$html->bodyEndBlank();
+					
+				
 				
 			}
 			
