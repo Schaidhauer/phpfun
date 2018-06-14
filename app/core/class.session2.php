@@ -1,21 +1,24 @@
 <?php
-
 require_once("class.config.php");
+require_once("class.password.php");
 
-Class Sessao{
-    var $idUsuario;
+Class Sessao
+{
+    public $idUsuario;
 	 
-	var $logoutPage;
-	var $loginPage;
-	var $permissoes;
+	public $logoutPage;
+	public $loginPage;
+	public $permissoes;
 	 
-	var $config;
-	var $core;
+	public $config;
+	public $core;
 	
 
 	function Sessao()
 	{
-		$this->config        = new Config();
+		$this->config  = new Config();
+		$this->e       = new Encryption();
+		$this->bdconn  = new Conexao();
 		
 		$this->loginPage = $this->config->config['protocolo']."://".$_SERVER['HTTP_HOST'].$this->config->config['systemFolder']."/login/";
 		$this->defaultPage = $this->config->config['protocolo']."://".$_SERVER['HTTP_HOST'].$this->config->config['systemFolder']."/".$this->config->config['defaultClass']."/";
@@ -27,17 +30,74 @@ Class Sessao{
 		{
 			if (isset($_SESSION['_idUsuario']))
 			{
-				//buscar do BD
-				$this->permissoes = array($this->config->config['defaultClass'],"ambientes");
+				//buscar no BD os grupos deste usuario
+				$grupos = $this->getGruposUsuarioComPermissao();
+				$usuario = $this->getPermissoes($this->getIdUsuario());			
+				$permissoes_padrao = array($this->config->config['defaultClass'],"login");
+				
+				//print_r($grupos);
+				
+				$permissoes = array_merge($permissoes_padrao,$grupos,$usuario);
+				//$permissoes = implode(',',$permissoes);
+				$this->permissoes = $permissoes;
+			}
+			else
+			{
+				//$this->logout();
 			}
 		}
+	}
+	
+	function getGruposUsuarioComPermissao()
+	{
+		$sql = "SELECT idGrupo FROM ".$this->config->config['login_bd_rel_grupo']." WHERE idUsuario = '".$this->getIdUsuario()."'";
+		//echo $sql;
+		$retorno_grupos = $this->bdconn->select($sql);
+		
+		if ($retorno_grupos)
+		{
+			foreach($retorno_grupos as $g)
+			{
+				$grupos_temp[] = $this->getPermissoes($g['idGrupo']);
+			}
+			$grupos=array();
+			foreach($grupos_temp as $gg)
+			{
+				
+				$grupos = array_merge($grupos,$gg);
+			
+			}
+			//return implode(','.$grupos);
+			return $grupos;
+		}
+		else
+			return array();
+
+	}
+	
+	function getPermissoes($idUsuario)
+	{
+		$sql = "SELECT permissao FROM ".$this->config->config['login_bd_permissoes']." WHERE idUsuario = '".$idUsuario."'";
+		$ret = $this->bdconn->select($sql);
+		
+		if ($ret)
+		{
+			foreach($ret as $g)
+			{
+				$perms[] = $g['permissao'];
+			}
+			//return implode(','.$perms);
+			return $perms;
+		}
+		else
+			return array();
 	}
 	
 	function novaSessao()
 	{
         //$this->Sessao();
 
-        $_SESSION['_expira'] = 9600;
+        $_SESSION['_expira'] = $this->config->config['session_timeout'];
         $_SESSION['_session_start'] = time();
 		$_SESSION['_session_id'] = session_id();
 	}
@@ -76,15 +136,19 @@ Class Sessao{
 	function login($usuario)
 	{
 		$this->novaSessao();
+		$usuario = $this->e->encode($usuario);
 		$_SESSION['_idUsuario'] = $usuario;
 		header("Location: ".$this->defaultPage);
 	}
 
-	function getValores(){
-    	$this->idUsuario = $_SESSION['_idUsuario'];
+	function getValores()
+	{
+    	$this->idUsuario = $this->e->decode($_SESSION['_idUsuario']);
 	}
 
-    function getIdUsuario(){
+    public function getIdUsuario()
+	{
+		$this->getValores();
     	return $this->idUsuario;
     }
 
