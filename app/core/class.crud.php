@@ -75,11 +75,8 @@ Class CrudBootstrap{
 				//echo "PAGINAR DEFINIDO";
 				$this->paginar       = true;
 			}	
-				
 		}
-	
 		$this->bdconn = new Conexao();
-		
 	}
 	
 	public function post($debug = false)
@@ -406,7 +403,12 @@ Class CrudBootstrap{
 					else
 						$selectLabel = "nome";
 						
-					$relNames = $this->formGetSelectContent($campo['options'],$selectLabel,@$campo['where']);
+					//$relNames = $this->formGetSelectContent($campo['options'],$selectLabel,@$campo['where']);
+					if (!is_array($campo['options']))
+						$relNames = $this->formGetSelectContent($campo['options'],$selectLabel,@$campo['where']);
+					else
+						$relNames = $campo['options'];
+					
 					$reltemp = $this->getColumnCRUDInfoMulti($campo['idFilhos'],$campo['tableRel'],$campo['idPai'],$id);
 					
 					echo "<p><b>".$campo['label'].":</b></p>";
@@ -415,10 +417,10 @@ Class CrudBootstrap{
 						foreach ($reltemp as $tmp)
 						{
 							if (@$r['id'] == $tmp)
-								$ret[] = "<a href='".$this->path."/".$campo['options']."/".@$r['id']."'>".@$r['nome']."</a>";
+								$ret[] = "<a href='".$this->path."/".$campo['options']."/".@$r['id']."'>".@$r[$selectLabel]."</a>";
 						}
 					}
-					$value_text = implode(',',$ret);
+					$value_text = implode(', ',$ret);
 					echo "<p>".$value_text."</p>";
 					
 				}
@@ -671,29 +673,12 @@ Class CrudBootstrap{
 		//$this->paginarStart = $start;
 		
 		$this->paginarTotal = $this->getListTotal();
-		//print_r($total);
-		//die("total: ");
-		// Qunatas paginas devem aparecer
+		
+		//Quantas paginas devem aparecer
 		$this->paginarPaginas = ceil($this->paginarTotal['COUNT(id)'] / $this->paginarMax);
 		
 		
 		$this->paginarParametros = $this->core->cmd;
-		//print_r($parametros);
-		//2 = p
-		//3 = numero da pagina
-		
-		/*
-		if (@$this->paginarParametros[2] == 'p')
-		{
-			if (@$this->paginarParametros[3] > 0)
-				$this->paginarStart = ($this->paginarParametros[3] - 1) * $this->paginarMax;
-			else
-				$this->paginarStart = 0;
-		}
-		else
-		{
-			$this->paginarStart = 0;
-		}*/
 		
 		if (@$_GET['p']!='')
 		{
@@ -707,24 +692,11 @@ Class CrudBootstrap{
 			$this->paginarStart = 0;
 		}
 		
-		// verifica a PAGINA atual(se for enviada) 
-		//if (@$_GET['p'])
-		//	$this->paginarStart = (@$_GET['p'] - 1) * $this->paginarMax;
-		//else 
-		//	$this->paginarStart = 1;
-		
 		$this->paginarQuery = " LIMIT ".$this->paginarStart.", ".$this->paginarMax;
 	}
 	
 	public function mostraPaginacao()
 	{
-		//$path = $this->core->system_path;
-	
-		//echo "<span class='label label-default' style='cursor:pointer;' ><a href='/listar/p/".$i."' style='color:#fff;'>".$i."</a></span> ";
-		//if ($this->paginarStart == 0)
-		//	$this->paginarStart = 1;
-		
-		
 		$paginasPadding = 5;
 		
 		$keepFiltro = "&".$this->rebuildGETwithoutPages($_SERVER['QUERY_STRING']);
@@ -786,32 +758,6 @@ Class CrudBootstrap{
 		
 		
 		}
-		
-		/*	
-		for($i=1;$i<=$this->paginarPaginas;$i++)
-		{
-			//foi enviado alguma pagina na URL?
-			if (@$_GET['p'] != '')
-			{
-				$keepFiltro = "&".$this->rebuildGETwithoutPages($_SERVER['QUERY_STRING']);
-			
-				if (@$_GET['p'] == $i)
-					echo "<span class='label' style='color:#aaa; border: 1px solid #ccc' title='Pagina de resultado atual'>".$i."</span> ";
-				else
-					echo "<span class='label label-default' title='Ir para pagina de resultado ".$i."'><a href='".$this->path."/".$this->form_class."/listar/?p=".$i.$keepFiltro."' style='color:#fff;'>".$i."</a></span> ";
-			}
-			else
-			{
-				$keepFiltro = "&".$this->rebuildGETwithoutPages($_SERVER['QUERY_STRING']);
-			
-				if (($this->paginarStart == 0) && ($i == 1))
-					echo "<span class='label' style='color:#aaa; border: 1px solid #ccc' title='Pagina de resultado atual'>".$i."</span> ";
-				else
-					echo "<span class='label label-default' title='Ir para pagina de resultado ".$i."'><a href='".$this->path."/".$this->form_class."/listar/?p=".$i.$keepFiltro."' style='color:#fff;'>".$i."</a></span> ";
-			}
-		}
-		//echo "| >";
-		*/
 	}
 	
 	public function rebuildGETwithoutPages($query)
@@ -928,7 +874,7 @@ Class CrudBootstrap{
 				{
 					if (ref == '".@$this->orderByAtual."')
 					{
-						if ('".$this->orderTypeByAtual."' == 'desc')
+						if ('".@$this->orderTypeByAtual."' == 'desc')
 							var newLabel = $(this).text()+' <i class=\'fa fa-sort-desc\'></i>';
 						else
 							var newLabel = $(this).text()+' <i class=\'fa fa-sort-asc\'></i>';
@@ -1114,6 +1060,11 @@ Class CrudBootstrap{
 		else
 			$size = "100%";
 			
+			
+		if (@$campo['height'] > 0)
+			$height = "height: ".$campo['height']."px";
+		
+			
 		if (($campo['type'] == 'text') || ($campo['type'] == 'password'))
 		{
 			//verifica se é necessário tratamento de data 
@@ -1131,7 +1082,7 @@ Class CrudBootstrap{
 					$t .= "<span class='tplSelect label label-default' style='background-color:#".$tpl."' ref='".$tpl."'>".$tpl."</span> ";
 				}
 			}
-			return "<input type='".$campo['type']."' id='id".$campo['name']."' name='".$campo['name']."' value='".$value."' class='form-control ".@$campo['class']."' style='width:".$size."' autocomplete='off' ".$req."/> ".@$t;
+			return "<input type='".$campo['type']."' id='id".$campo['name']."' name='".$campo['name']."' value=\"".$value."\" class='form-control ".@$campo['class']."' style='width:".$size."' autocomplete='off' ".$req."/> ".@$t;
 		}
 		else if ($campo['type'] == 'hidden')
 		{
@@ -1139,7 +1090,7 @@ Class CrudBootstrap{
 		}
 		else if($campo['type'] == 'textarea')
 		{
-			return "<textarea name='".$campo['name']."' class='form-control ".@$campo['class']."' style='width:".$size."' ".$req."/>".$value."</textarea>";
+			return "<textarea name='".$campo['name']."' class='form-control ".@$campo['class']."' style='width:".$size.";".@$height."' ".$req."/>".$value."</textarea>";
 		}
 		else if($campo['type'] == 'select')
 		{
@@ -1244,9 +1195,10 @@ Class CrudBootstrap{
 							}
 							*/
 							//print_r($value);
-							
 							if (in_array($s['id'], $value))
+							{
 								$return_sel .= "<option value='".$s['id']."' selected>".$s[$selectLabel]."</option>";
+							}
 							else
 								$return_sel .= "<option value='".$s['id']."'>".$s[$selectLabel]."</option>";
 							
@@ -1262,10 +1214,20 @@ Class CrudBootstrap{
 					}
 					else
 					{
-						if ($value == $v)
-							$return_sel .= "<option value='".$v."' selected>".$s."</option>";
+						if (is_array($value))
+						{
+							if (in_array($s, $value))
+								$return_sel .= "<option value='".$v."' selected>".$s."</option>";
+							else
+								$return_sel .= "<option value='".$v."'>".$s."</option>";
+						}
 						else
-							$return_sel .= "<option value='".$v."'>".$s."</option>";
+						{
+							if ($value == $v)
+								$return_sel .= "<option value='".$v."' selected>".$s."</option>";
+							else
+								$return_sel .= "<option value='".$v."'>".$s."</option>";
+						}
 					}
 				
 				}
@@ -1285,7 +1247,8 @@ Class CrudBootstrap{
 		$rel_inserts = array();
 		$rel_delete = array();
 		
-		foreach ($post as $p => $v){
+		foreach ($post as $p => $v)
+		{
 			if (($p == 'password')||($p == 'senha'))
 			{
 				$e = new Encryption();
@@ -1306,7 +1269,9 @@ Class CrudBootstrap{
 					{
 						foreach ($v['values'] as $i)
 						{
-							$rel_inserts[] = "INSERT INTO ".$v['tableRel']." (".$v['idFilhos'].",".$v['idPai'].") VALUES (".$i.",";
+							//tentativa de fazer um diff
+							//$rel_in[] = array('value'=>$i,'table'=>$v['tableRel'],'idFilhos'=>$v['idFilhos'],'idPai'=>$v['idPai']);
+							$rel_inserts[] = "INSERT INTO ".$v['tableRel']." (".$v['idFilhos'].",".$v['idPai'].") VALUES ('".$i."',";
 						}
 					}
 				}
@@ -1315,8 +1280,6 @@ Class CrudBootstrap{
 					$sql .= $p."='".addslashes($v)."',";
 				}
 			}
-			
-		
 		}
 		$sql = rtrim($sql,",");
 		$sql .=  " WHERE id=".$id.";";
@@ -1333,6 +1296,13 @@ Class CrudBootstrap{
 		
 		if ($this->bdconn->error())
 			$this->crudError .= "<p style='color:red'>ERRO NA QUERY: ".htmlentities($sql)." - Retorno mysql:".$this->bdconn->error()."</p>";
+		else
+		{
+			if ($this->config->config['audit'] == true)
+			{
+				$this->addAudit($this->form_dbtable,$id,'edit',$sql);
+			}
+		}
 		
 		
 		if ($contem_relacionamentos)
@@ -1344,7 +1314,7 @@ Class CrudBootstrap{
 			{
 				$this->bdconn->executa($del);
 				if ($this->bdconn->error())
-					$this->crudError .= "<p style='color:red'>ERRO NA QUERY: ".htmlentities($sql)." - Retorno mysql:".$this->bdconn->error()."</p>";
+					$this->crudError .= "<p style='color:red'>ERRO NA QUERY: ".htmlentities($del)." - Retorno mysql:".$this->bdconn->error()."</p>";
 			}
 			
 			
@@ -1352,16 +1322,33 @@ Class CrudBootstrap{
 			{
 				$this->bdconn->executa($ins.$id.")");
 				if ($this->bdconn->error())
-					$this->crudError .= "<p style='color:red'>ERRO NA QUERY: ".htmlentities($sql)." - Retorno mysql:".$this->bdconn->error()."</p>";
+					$this->crudError .= "<p style='color:red'>ERRO NA QUERY: ".htmlentities($ins.$id.")")." - Retorno mysql:".$this->bdconn->error()."</p>";
+				
+				if ($this->config->config['audit'] == true)
+				{
+					$this->addAudit($this->form_dbtable,$id,'edit',$ins.$id.")");
+				}
 			}
 		}
 
 	}
+	
+	public function addAudit($class,$id,$tipo,$query)
+	{
+		$idUsuario = Core::$session->getIdUsuario();
+		$sql = "INSERT INTO lf_audit (idUsuario,class,idClass,tipo,query,dt) values (".$idUsuario.",'".$class."','".$id."','".$tipo."','".addslashes($query)."',NOW())";
+		$this->bdconn->executa($sql);
+		
+		if ($this->bdconn->error())
+			echo "<p style='color:red'>ERRO NA QUERY: ".htmlentities($sql)." - Retorno mysql:".$this->bdconn->error()."</p>";
+	}
 		
 	public function logoutCRUD()
 	{
-		$s = new Sessao();
-		$s->logout();
+		//$s = new Sessao();
+		//$s->logout();
+		
+		Core::$session->logout();
 	}
 	
 	public function loginCRUD($usuario,$senha)
@@ -1373,9 +1360,14 @@ Class CrudBootstrap{
 			$sql = "SELECT id FROM ".$this->config->config['login_bd_table']." WHERE ".$this->config->config['login_bd_usuario']." = '".$usuario."' AND  ".$this->config->config['login_bd_senha']." = '".md5($senha)."';";
 			$res = $this->bdconn->select($sql);
 			
-			if (sizeof($res > 0))
+			if ($res)
 			{
 				$canLogIn = true;
+				
+				$sql = "UPDATE ".$this->config->config['login_bd_table']." SET lastLogin = NOW() WHERE id = ".$res[0]['id'].";";
+				$res2 = $this->bdconn->insert($sql);
+				
+				$idUsuarioSession = $res[0]['id'];
 			}
 		}
 		else if ($this->config->config['login_tipo'] == 'ldap')
@@ -1383,29 +1375,52 @@ Class CrudBootstrap{
 			$ldap = new LDAP($usuario,$senha);
 			
 			if ($ldap->login())
-				$canLogIn = true;
+			{
+				//salva as infos no DB se nao existir
+				$sql = "SELECT id,ativo FROM ".$this->config->config['login_bd_table']." WHERE ".$this->config->config['login_bd_usuario']." = '".$usuario."' AND tipoAuth='ldap';";
+				$res = $this->bdconn->select($sql);
+				
+				if (!$res)
+				{
+					$sql = "INSERT INTO ".$this->config->config['login_bd_table']." (usuario,tipoAuth,ativo) VALUES ('".$usuario."','ldap',1);";
+					$res2 = $this->bdconn->insert($sql);
+					
+					$canLogIn = true;
+					
+					$idUsuarioSession = $res2;
+				}
+				else
+				{
+					if ($res[0]['ativo'] == '1')
+						$canLogIn = true;
+						
+					$sql = "UPDATE ".$this->config->config['login_bd_table']." SET lastLogin = NOW() WHERE id = ".$res[0]['id'].";";
+					$res2 = $this->bdconn->insert($sql);
+					
+					$idUsuarioSession = $res[0]['id'];
+				}
+			}
 		}
 		else
 		{
-		
 			die("ERRO: Sem tipo de login");
-		
 		}
 		
 		if ($canLogIn)
 		{
-			$s = new Sessao();
-			$s->login($usuario);
+			//$s = new Sessao();
+			//$s->login($idUsuarioSession);
 			
+			Core::$session->login($idUsuarioSession);
 		
-		}else{
-		
+		}
+		else
+		{
 			echo "<div>";
 				echo "<div class='avisoFun'>";
 					echo "Login ou senha incorretos.";
 				echo "</div>";
 			echo "</div>";
-		
 		}
 
 		
@@ -1426,9 +1441,8 @@ Class CrudBootstrap{
 		{
 			//print_r($p);
 			//echo "<hr/>";
-			if (($p == 'password')||($p == 'senha')){
-				//$converter = new Encryption;
-				//$encoded = $converter->encode($v);
+			if (($p == 'password')||($p == 'senha'))
+			{
 				$e = new Encryption();
 				$encoded = $e->encode($v);
 				
@@ -1450,7 +1464,7 @@ Class CrudBootstrap{
 						
 						foreach ($v['values'] as $i)
 						{
-							$rel_inserts[] = "INSERT INTO ".$v['tableRel']." (".$v['idFilhos'].",".$v['idPai'].") VALUES (".$i.",";
+							$rel_inserts[] = "INSERT INTO ".$v['tableRel']." (".$v['idFilhos'].",".$v['idPai'].") VALUES ('".$i."',";
 						}
 					}
 					
@@ -1476,7 +1490,13 @@ Class CrudBootstrap{
 		$last_id = $this->bdconn->insert($sql);
 		if ($this->bdconn->error())
 			$this->crudError .= "<p style='color:red'>ERRO NA QUERY: ".htmlentities($sql)." - Retorno mysql:".$this->bdconn->error()."</p>";
-			
+		else
+		{
+			if ($this->config->config['audit'] == true)
+			{
+				$this->addAudit($this->form_dbtable,$last_id,'add',$sql);
+			}
+		}
 			
 		//pega o retorno do INSERT
 		//$last_id = 0;
@@ -1492,7 +1512,14 @@ Class CrudBootstrap{
 			{
 				$this->bdconn->executa($ins.$last_id.")");
 				if ($this->bdconn->error())
-					$this->crudError .= "<p style='color:red'>ERRO NA QUERY: ".htmlentities($sql)." - Retorno mysql:".$this->bdconn->error()."</p>";
+					$this->crudError .= "<p style='color:red'>ERRO NA QUERY: ".htmlentities($ins)." - Retorno mysql:".$this->bdconn->error()."</p>";
+				else
+				{
+					if ($this->config->config['audit'] == true)
+					{
+						$this->addAudit($this->form_dbtable,$last_id,'add',$ins);
+					}
+				}
 			}
 		}
 		
