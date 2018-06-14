@@ -52,6 +52,14 @@ Class Conexao
 		}
 	}
 	
+    public function __destruct()
+    {
+		if ($this->tipo == 'sql')
+		{
+			sqlsrv_close($this->conn);
+		}
+	}
+	
 	public function connect()
 	{
 		
@@ -59,7 +67,8 @@ Class Conexao
 		{
 			$conninfo = array("Database" => $this->db, "UID" => $this->user, "PWD" => $this->password);
 			$this->conn = sqlsrv_connect($this->dbhost, $conninfo);
-		}else if ($this->tipo == 'mysql')
+		}
+		else if ($this->tipo == 'mysql')
 		{
 			//$this->conn = new MysqliDb($this->dbhost,$this->user,$this->password,$this->db);
 			$this->conn = new MysqliDb_v2($this->dbhost,$this->user,$this->password,$this->db);
