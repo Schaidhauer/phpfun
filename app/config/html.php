@@ -17,7 +17,7 @@ $config_html['sysVersion'] = '0.1';
 | Nome do sistema, normalmente usado para aparecer no header do site.
 |
 */
-$config_html['sysName'] = 'YOUR SYSNAME';
+$config_html['sysName'] = 'LOGFUN';
 
 /*
 |--------------------------------------------------------------------------
@@ -27,7 +27,7 @@ $config_html['sysName'] = 'YOUR SYSNAME';
 | Vai nas tags <Title> do sistema
 |
 */
-$config_html['sysTitulo'] = 'YOUR SYSNAME';
+$config_html['sysTitulo'] = 'LOGFUN';
 
 /*
 |--------------------------------------------------------------------------
@@ -37,7 +37,7 @@ $config_html['sysTitulo'] = 'YOUR SYSNAME';
 | Vai nas tags <meta> do head
 |
 */
-$config_html['sysDescricao'] = 'Descricao YOUR SYSNAME';
+$config_html['sysDescricao'] = 'Descricao LOGFUN';
 
 /*
 |--------------------------------------------------------------------------
@@ -67,7 +67,7 @@ $config_html['sysLang'] = 'pt-br';
 | Vai nas tags <meta> do sistema
 |
 */
-$config_html['favicon'] = 'assets/img/icon.png';
+$config_html['favicon'] = 'assets/img/logfun_icon.png';
 
 
 ?>
