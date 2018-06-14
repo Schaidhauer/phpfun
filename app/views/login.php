@@ -1,45 +1,35 @@
 <?php
-
-require_once("app/core/class.core.php");
-
-
 Class Login{
 
-	public $core;
 	public $my;
 	
 	public function __construct(){
-		$this->core = new Core();
+		//$this->core = new Core();
 		$this->my = new LoginController(); //controller
 		
 	}
 	
-	public function __call($name, $arguments)
-	{	
-		//Se enviar o metodo em branco, chama um metodo em branco
-		if (($name == '') || ($name == ' '))
-		{
-			$this->listar();
-		}
+	function view($identificador,$arguments)
+	{
+		Core::$html->head();
+		Core::$html->bodyBegin();
+		
+		if (!$this->my->crud->getById($identificador))
+			Core::$html->mensagemErro();
 		else
-		{
-			//Se não achar o metodo, envia um erro.
-			echo "Erro ao chamar metodo ".$name;
-			
-			$this->core->html->head();
-			$this->core->html->bodyBegin();
-			$this->core->html->mensagemErro();
-			$this->core->html->bodyEnd(@$jquery);
-		}
+			$this->listar();
+		
+		
+		Core::$html->bodyEnd();
 	}
 	
 	function listar()
 	{
-		$this->core->html->head();
-		$this->core->html->bodyBeginBlank();
+		Core::$html->head();
+		Core::$html->bodyBeginBlank();
 		$this->my->crud->post();
 		$this->my->crud->criaFormLogin();
-		$this->core->html->bodyEndBlank(@$jquery);
+		Core::$html->bodyEndBlank(@$jquery);
 	}
 	
 	function logout()
