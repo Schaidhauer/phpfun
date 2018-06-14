@@ -14,7 +14,8 @@ Class Graficos{
 	public $tipoGrafico;
 	
 
-	public function Graficos($tipoGrafico = 'linha'){
+	public function Graficos($tipoGrafico = 'linha')
+	{
 		//linha, pizza
 		$this->tipoGrafico = $tipoGrafico;
 	
@@ -27,8 +28,61 @@ Class Graficos{
 		
 	}
 	
+	public function setSQLResult($resultSQL)
+	{
+		$y='';
+		foreach ($resultSQL as $result)
+		{
+			if ($this->tipoGrafico == 'linha')
+			{
+				//print_r($result);
+				foreach ($result as $yty => $x)
+				{						
+					//echo "[x: ".$x."-"." y: ".$y." yty: ".$yty."] <br/>";
+					
+					if ($y != '')
+					{
+						//data | tipoerro | qtd
+						$grafico_info[$y][$yty] = $x;
+						$y='';
+					}
+					else
+					{
+						$y = $x;
+					}
+					//print_r($grafico_info);
+					//echo "<hr/>";
+				}	
+			}
+			else if ($this->tipoGrafico == 'pizza')
+			{
+				foreach ($result as $x)
+				{								
+					//print_r($x);
+					//echo "<br/>";
+					if ($y != '')
+					{
+						//$grafico_info["Cod ".$y] = $x;
+						$grafico_info[$y] = $x;
+						$y='';
+					}
+					else
+					{
+						$y = $x;
+					}
+				}
+			}
+			
+		}
+		//print_r($grafico_info);
+		$this->setDados($grafico_info);
+		
+	}
+	
+	
 	public function setDados($dados)
 	{
+		
 		$g_data = "";
 		$g_js = "";
 		$g_cols = array();
