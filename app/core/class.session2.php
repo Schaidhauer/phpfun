@@ -145,6 +145,13 @@ Class Sessao
 	{
     	$this->idUsuario = $this->e->decode($_SESSION['_idUsuario']);
 	}
+	
+	public function getUserObj()
+	{
+		$sql = "SELECT * FROM lf_usuarios WHERE id = ".$this->getIdUsuario().";";
+		$res = $this->bdconn->select($sql);
+		return $res[0];
+	}
 
     public function getIdUsuario()
 	{
