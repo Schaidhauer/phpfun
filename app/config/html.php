@@ -68,6 +68,14 @@ $config_html['sysLang'] = 'pt-br';
 |
 */
 $config_html['favicon'] = 'assets/img/logfun_icon.png';
+/*
+|--------------------------------------------------------------------------
+| RELOGIO DIGITAL
+|--------------------------------------------------------------------------
+| true / false
+|
+*/
+$config_html['clock'] = true;
 
 
 ?>
