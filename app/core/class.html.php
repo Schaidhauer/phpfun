@@ -24,6 +24,7 @@ Class Html{
 		$this->sysDescricao    = $html_config['sysDescricao'];
 		$this->sysAutor        = $html_config['sysAutor'];
 		$this->favicon         = $html_config['favicon'];
+		$this->clock           = $html_config['clock'];
 		
 		$this->mostraMenuEsquerda = true;
 		$this->path = $path;
@@ -108,6 +109,7 @@ Class Html{
 			<!-- PLUGINS -->
 			<link href="'.$this->path.'/assets/plugins/select2/css/select2.min.css" rel="stylesheet" type="text/css">
 			<link href="'.$this->path.'/assets/plugins/datepicker/css/bootstrap-datepicker.min.css" rel="stylesheet" type="text/css">
+			<link href="'.$this->path.'/assets/plugins/datetimepicker/jquery.datetimepicker.min.css" rel="stylesheet" type="text/css">
 
 			<!-- Morris Charts CSS -->
 			<!--link href="'.$this->path.'/assets/theme/vendor/morrisjs/morris.css" rel="stylesheet"-->
@@ -125,9 +127,15 @@ Class Html{
 		';
 	}
 	
+	public function setTabAlertContent($c)
+	{
+		$this->tabAlertContent = $c;
+	}
+	
 	public function menuSuperior()
 	{
-		return "
+		$m = "";
+		$m .="
 		<div class='navbar-header' style='width: 251px; border-right:1px solid #e7e7e7;'>
 			<button type='button' class='navbar-toggle' data-toggle='collapse' data-target='.navbar-collapse'>
 				<span class='sr-only'>Toggle navigation</span>
@@ -149,9 +157,29 @@ Class Html{
 			</span>
 			</div>
 		</form>
+		
+		<div class='input-group custom-search-form'>
+		
+		</div>
+		
 		<!-- /.navbar-header -->
 		
-		<ul class='nav navbar-top-links navbar-right'>
+		<ul class='nav navbar-top-links navbar-right'>";
+		
+		
+		if ($this->clock)
+		{
+			$m .= "
+			<li>
+				<div id='clock' style='color: #ccc;'> </div>	
+				
+			</li>
+			<!-- /.dropdown -->";
+		}
+		
+		if (sizeof(@$this->tabMsgContent) > 0)
+		{
+			$m .= "
 			<li class='dropdown'>
 				<a class='dropdown-toggle' data-toggle='dropdown' href='#'>
 					<i class='fa fa-envelope fa-fw'></i> <i class='fa fa-caret-down'></i>
@@ -202,7 +230,12 @@ Class Html{
 				</ul>
 				<!-- /.dropdown-messages -->
 			</li>
-			<!-- /.dropdown -->
+			<!-- /.dropdown -->";
+		}
+		
+		if (sizeof(@$this->tabTaskContent) > 0)
+		{
+			$m .= "
 			<li class='dropdown'>
 				<a class='dropdown-toggle' data-toggle='dropdown' href='#'>
 					<i class='fa fa-tasks fa-fw'></i> <i class='fa fa-caret-down'></i>
@@ -281,75 +314,73 @@ Class Html{
 				</ul>
 				<!-- /.dropdown-tasks -->
 			</li>
-			<!-- /.dropdown -->
+			<!-- /.dropdown -->";
+		}
+		
+		if (isset($this->tabAlertContent))
+		{
+			$qtd = sizeof($this->tabAlertContent);
+			
+			if ($qtd > 0)
+				$contadorAlertas = "<span style='font-size: 10px;background-color: red;padding-left: 2px;padding-right: 2px;border-radius: 10px;color: #fff;position: absolute;'>".$qtd."</span>";
+			
+			$m .= "
 			<li class='dropdown'>
 				<a class='dropdown-toggle' data-toggle='dropdown' href='#'>
+					".@$contadorAlertas."
 					<i class='fa fa-bell fa-fw'></i> <i class='fa fa-caret-down'></i>
 				</a>
-				<ul class='dropdown-menu dropdown-alerts'>
+				<ul class='dropdown-menu dropdown-alerts'>";
+				
+				foreach ($this->tabAlertContent as $a)
+				{
+					$m .= "
 					<li>
-						<a href='#'>
+						<a href='".$a['link']."'>
 							<div>
-								<i class='fa fa-comment fa-fw'></i> New Comment
-								<span class='pull-right text-muted small'>4 minutes ago</span>
+								<i class='fa fa-comment fa-fw'></i> ".$a['text']."
+								<span class='pull-right text-muted small'>".$a['subtext']."</span>
 							</div>
 						</a>
 					</li>
-					<li class='divider'></li>
-					<li>
-						<a href='#'>
-							<div>
-								<i class='fa fa-twitter fa-fw'></i> 3 New Followers
-								<span class='pull-right text-muted small'>12 minutes ago</span>
-							</div>
-						</a>
-					</li>
-					<li class='divider'></li>
-					<li>
-						<a href='#'>
-							<div>
-								<i class='fa fa-envelope fa-fw'></i> Message Sent
-								<span class='pull-right text-muted small'>4 minutes ago</span>
-							</div>
-						</a>
-					</li>
-					<li class='divider'></li>
-					<li>
-						<a href='#'>
-							<div>
-								<i class='fa fa-tasks fa-fw'></i> New Task
-								<span class='pull-right text-muted small'>4 minutes ago</span>
-							</div>
-						</a>
-					</li>
-					<li class='divider'></li>
-					<li>
-						<a href='#'>
-							<div>
-								<i class='fa fa-upload fa-fw'></i> Server Rebooted
-								<span class='pull-right text-muted small'>4 minutes ago</span>
-							</div>
-						</a>
-					</li>
-					<li class='divider'></li>
-					<li>
-						<a class='text-center' href='#'>
-							<strong>See All Alerts</strong>
-							<i class='fa fa-angle-right'></i>
-						</a>
-					</li>
-				</ul>
+					<li class='divider'></li>";
+				}
+				
+				if ($qtd > 0)
+				{
+					$m .= "
+						<li>
+							<a class='text-center' href='".$this->path."/alertas/'>
+								<strong>Ver todos</strong>
+								<i class='fa fa-angle-right'></i>
+							</a>
+						</li>
+					</ul>";
+				}
+				else
+				{
+					$m .= "
+						<li>
+							<a class='text-center' href='".$this->path."/alertas/'>
+								<strong>Nenhum alerta ativo</strong>
+							</a>
+						</li>
+					</ul>";
+				}
+				
+				$m .="
 				<!-- /.dropdown-alerts -->
-			</li>
+			</li>";
+		}
+		
+		$m .= "
 			<!-- /.dropdown -->
 			<li class='dropdown'>
 				<a class='dropdown-toggle' data-toggle='dropdown' href='#'>
 					<i class='fa fa-user fa-fw'></i> <i class='fa fa-caret-down'></i>
 				</a>
 				<ul class='dropdown-menu dropdown-user'>
-					<li><a href='#'><i class='fa fa-user fa-fw'></i> User Profile</a>
-					</li>
-					<li><a href='#'><i class='fa fa-gear fa-fw'></i> Settings</a>
+					<li><a href='".$this->path."/profile/'><i class='fa fa-user fa-fw'></i> Profile</a>
 					</li>
 					<li class='divider'></li>
 					<li><a href='".$this->path."/login/logout/'><i class='fa fa-sign-out fa-fw'></i> Logout</a>
@@ -376,6 +407,8 @@ Class Html{
 				</ul>-->
 		";
 		
+		return $m;
+		
 	}
 	
 	public function montaPesquisa(){
@@ -391,15 +424,14 @@ Class Html{
 			<li class='sidebar-search'".@$escondeMenuCss." style='padding: 0px; '>
 				<form action='".$this->path."/search/' method='get' class='navbar-form'>
 					<div class='input-group custom-search-form'>
-						<input type='text' class='form-control' placeholder='Search...'>
+						<input type='text' class='form-control' placeholder='Search.....'>
 						<span class='input-group-btn'>
 						<button class='btn btn-default' type='button'>
 							<i class='fa fa-search'></i>
 						</button>
 					</span>
 					</div>
-				</form>
-				
+				</form>				
 			</li>-->
 		";
 		
@@ -480,6 +512,8 @@ Class Html{
 		<script src="'.$this->path.'/assets/plugins/select2/js/select2.min.js"></script>
 		<script src="'.$this->path.'/assets/plugins/datepicker/js/bootstrap-datepicker.js"></script>
 		<script src="'.$this->path.'/assets/plugins/validator/validator.min.js"></script>
+		<script src="'.$this->path.'/assets/plugins/datetimepicker/jquery.datetimepicker.min.js"></script>
+		<script src="'.$this->path.'/assets/plugins/datetimepicker/moment.js"></script>
 		
 		<!-- Custom JS-->
 		'.$this->customJS.'
@@ -515,12 +549,12 @@ Class Html{
 			}
 			else if (@$m['dropdown'])
 			{
-				//$paiHighlight = false;
-				//$netoHighlight = false;
+				$paiHighlight = false;
+				$netoHighlight = false;
 				
 				//foreach para prever selecionando um filho, deixar highlight no pai
 				//usar o extra_highlights ou query_highlights
-				/*foreach($m['dropdown'] as $d)
+				foreach($m['dropdown'] as $d)
 				{
 					//echo $d['link'];
 					//se um dor filhos for o highlight, o pai deve expandir (colocando classe IN)
@@ -543,14 +577,14 @@ Class Html{
 						}
 					}
 					//	$atual = $m['linkdrop'];
-				}*/
+				}
 				
 				$lis = "";
 				$lis_trd = "";
 				foreach($m['dropdown'] as $sub)
 				{
-					$paiHighlight = false;
-					$netoHighlight = false;
+					//$paiHighlight = false;
+					//$netoHighlight = false;
 				
 					$lis_trd = "";
 					//verificar se tem mais um nivel de dropdown
@@ -781,9 +815,40 @@ Class Html{
 	
 	function jQueryReady($jquery)
 	{
+		if ($this->clock)
+		{
+			$jquery_clock = "
+			var d = new Date(".(time() * 1000).");
+			function digitalClock() {
+			  d.setTime(d.getTime() + 1000);
+			  var hrs = d.getHours();
+			  var mins = d.getMinutes();
+			  var secs = d.getSeconds();
+			  mins = (mins < 10 ? '0' : '') + mins;
+			  secs = (secs < 10 ? '0' : '') + secs;
+			  //var apm = (hrs < 12) ? 'am' : 'pm';
+			  //hrs = (hrs > 12) ? hrs - 12 : hrs;
+			  //hrs = (hrs == 0) ? 12 : hrs;
+			  //var ctime = hrs + ':' + mins + ':' + secs + ' ' + apm;
+			  var ctime = hrs + ':' + mins + ':' + secs ;
+			  document.getElementById('clock').firstChild.nodeValue = ctime;
+			}
+			window.onload = function() {
+			  digitalClock();
+			  setInterval('digitalClock()', 1000);
+			}";
+		}
+	
 		echo "
 		<script>
+		
+			
+		".@$jquery_clock."
+		
 		$( document ).ready(function() {
+			
+			$('#lf_displayOnLoad').show();
+			$('#lf_displayOnLoadImg').hide();
 			
 			$('#idBtnSearch').click(function()
 			{
@@ -817,12 +882,54 @@ Class Html{
 			});
 			
 			$('.select2').select2();
+			
 			$('.datepicker').datepicker({
 				format: 'dd/mm/yyyy',
 				language: 'pt-BR',
 				
 				pickerPosition: 'top-left',
 				autoclose: true
+			});
+			
+			$('.datepickerFull').datepicker({
+				format: 'dd/mm/yyyy 00:00:00',
+				language: 'pt-BR',
+				
+				pickerPosition: 'top-left',
+				autoclose: true
+			});
+			
+			$('.datepickerEN').datepicker({
+				format: 'yyyy-mm-dd 00:00:00',
+				language: 'pt-BR',
+				
+				pickerPosition: 'top-left',
+				autoclose: true
+			});
+			
+			$('.datepickerENfinal').datepicker({
+				format: 'yyyy-mm-dd 23:59:59',
+				language: 'pt-BR',
+				
+				pickerPosition: 'top-left',
+				autoclose: true
+			});
+			
+			$.datetimepicker.setLocale('pt-BR');
+			$.datetimepicker.setDateFormatter('moment');
+			$.datetimepicker.setDateFormatter({
+				parseDate: function (date, format)
+				{
+					var d = moment(date, format);
+					return d.isValid() ? d.toDate() : false;
+				},
+				formatDate: function (date, format)
+				{
+					return moment(date).format(format);
+				},
+			});
+			$('.datetimepicker').datetimepicker({
+				format:'DD/MM/YYYY HH:mm:ss'
 			});
 		
 			".@$jquery."
