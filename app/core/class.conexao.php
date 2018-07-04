@@ -118,7 +118,10 @@ Class Conexao
 				if ($this->conn->query($query))
 					return $this->conn->fetch();
 				else
-					die ("ERRO MYSQL: {".$query."} ".$this->error());
+				{
+					//die ("ERRO MYSQL: {".$query."} ".$this->error());
+					echo "ERRO MYSQL: {".$query."} ".$this->error();
+				}
 			//}	
 			
 		
