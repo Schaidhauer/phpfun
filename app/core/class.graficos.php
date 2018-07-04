@@ -24,11 +24,11 @@ Class Graficos{
 		$this->help          = new Help();
 		$this->bdconn        = new Conexao();
 		
-		
+		$this->jquery = "";
 		
 	}
 	
-	public function setSQLResult($resultSQL)
+	public function setSQLResult($resultSQL,$div='idGrafico')
 	{
 		$y='';
 		foreach ($resultSQL as $result)
@@ -75,12 +75,12 @@ Class Graficos{
 			
 		}
 		//print_r($grafico_info);
-		$this->setDados($grafico_info);
+		$this->setDados($grafico_info,$div);
 		
 	}
 	
 	
-	public function setDados($dados)
+	public function setDados($dados,$div='idGrafico')
 	{
 		
 		$g_data = "";
@@ -113,21 +113,21 @@ Class Graficos{
 			
 		if ($this->tipoGrafico == 'linha')
 		{
-			$g_js .= "google.charts.setOnLoadCallback(drawChartLine);";
+			$g_js .= "google.charts.setOnLoadCallback(drawChartLine_".$div.");";
 		}
 		else if ($this->tipoGrafico == 'pizza')
 		{
-			$g_js .= "google.charts.setOnLoadCallback(drawChart);";
+			$g_js .= "google.charts.setOnLoadCallback(drawChart_".$div.");";
 		}
 		
 		$this->g_js = $g_js;
 		$this->g_data = $g_data;
 		$this->g_cols = $g_cols;
 		
-		$this->montaJSfunctions();
+		$this->montaJSfunctions($div);
 	}
 	
-	public function montaJSfunctions()
+	public function montaJSfunctions($div='idGrafico')
 	{
 		$js = "";
 		
@@ -135,7 +135,7 @@ Class Graficos{
 		if ($this->tipoGrafico == 'linha')
 		{
 			$js .= "
-				function drawChartLine() {
+				function drawChartLine_".$div."() {
 
 					var data = new google.visualization.DataTable();
 					data.addColumn('string', 'Data');";
@@ -160,7 +160,7 @@ Class Graficos{
 						}
 					};
 
-					var chart = new google.visualization.LineChart(document.getElementById('idGrafico'));
+					var chart = new google.visualization.LineChart(document.getElementById('".$div."'));
 
 					chart.draw(data, options);
 				
@@ -169,7 +169,7 @@ Class Graficos{
 		else if ($this->tipoGrafico == 'pizza')
 		{
 		
-			$js .= "function drawChart() {
+			$js .= "function drawChart_".$div."() {
 
 				var options = {
 				  slices: {
@@ -185,14 +185,14 @@ Class Graficos{
 				]);
 
 				
-				var chart_2 = new google.visualization.PieChart(document.getElementById('idGrafico'));
+				var chart_2 = new google.visualization.PieChart(document.getElementById('".$div."'));
 				chart_2.draw(data_grafico, options);
 
 			}";
 		
 		}
 
-		$this->jquery = $this->g_js." ".$js;
+		$this->jquery .= $this->g_js." ".$js;
 	
 	}
 	
