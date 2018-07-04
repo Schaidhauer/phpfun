@@ -6,6 +6,44 @@ Class Help{
 		
 	}
 	
+	function startTimer()
+	{
+		$this->time_start = microtime(true); 
+	}
+	
+	function stopTimer()
+	{
+		$this->time_end = microtime(true);
+
+		//echo $this->time_end." - ".$this->time_start;
+		//dividing with 60 will give the execution time in minutes otherwise seconds
+		$total_secs = ((floor($this->time_end) - floor($this->time_start)));
+		
+		if ($total_secs > 100)
+			$this->execution_time = ($total_secs/60)." mins";
+		else
+			$this->execution_time = $total_secs." secs";
+	}
+	
+	function showTimer()
+	{
+		echo '<b>Tempo total de execução:</b> '.$this->execution_time;
+	}
+	
+	function getTimerTotal()
+	{
+		return $this->execution_time;
+	}
+	
+	public function getTimeToMicroseconds()
+	{
+		$t = microtime(true);
+		$micro = sprintf("%06d", ($t - floor($t)) * 1000000);
+		$d = new DateTime(date('Y-m-d H:i:s.' . $micro, $t));
+
+		return $d->format("Y-m-d H:i:s.u"); 
+	}
+	
 	function remover_caracter($string) {
 		$string = preg_replace("/[áàâãä]/", "a", $string);
 		$string = preg_replace("/[ÁÀÂÃÄ]/", "A", $string);
@@ -84,11 +122,19 @@ Class Help{
         $datas = explode(" ",$data);
         
         $data1 = explode("/",$datas[0]);
-        $hora = explode(":",$datas[1]);
+        $hora = explode(":",@$datas[1]);
+		
+		if (@$datas[1] == '')
+		{
+			$hora[0] = "00";
+			$hora[1] = "00";
+			$hora[2] = "00";
+		}
+		
 		if ($noHour)
 			$data = $data1[2]."-".$data1[1]."-".$data1[0];
 		else
-			$data = $data1[2]."-".$data1[1]."-".$data1[0]." ".$hora[0].":".$hora[1].":".$hora[2];
+			$data = $data1[2]."-".$data1[1]."-".$data1[0]." ".@$hora[0].":".@$hora[1].":".@$hora[2];
         return $data;
     }
 
@@ -96,11 +142,19 @@ Class Help{
         $datas = explode(" ",$data);
         
         $data1 = explode("-",$datas[0]);
-        $hora = explode(":",$datas[1]);
+        $hora = explode(":",@$datas[1]);
+		
+		if (@$datas[1] == '')
+		{
+			$hora[0] = "00";
+			$hora[1] = "00";
+			$hora[2] = "00";
+		}
+		
 		if ($noHour)
 			$data = $data1[2]."/".$data1[1]."/".$data1[0];
 		else
-			$data = $data1[2]."/".$data1[1]."/".$data1[0]." ".$hora[0].":".$hora[1].":".$hora[2];
+			$data = $data1[2]."/".$data1[1]."/".$data1[0]." ".@$hora[0].":".@$hora[1].":".@$hora[2];
         return $data;
     }
     
