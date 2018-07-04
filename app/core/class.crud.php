@@ -116,12 +116,18 @@ Class CrudBootstrap{
 					}
 					else
 					{ 
+						//echo $v['name'].":".$_REQUEST[$v['name']]."<br/>";
 						if (@$_REQUEST[$v['name']] != '')
+						{
+							
 							$post[$v['name']] = @$_REQUEST[$v['name']];
+						}
 					}
 						
 				}
 			}
+			
+
 			
 			if ($debug)
 			{
@@ -292,7 +298,7 @@ Class CrudBootstrap{
 								//echo "<tr><td>";
 									echo "<div class='form-group".$classreq."' style='margin-bottom: 0px;'>";
 										if (@$campo['subLabel'] != '')
-											$subLabel = " <span style='font-size: 10px; font-weight: 100; color:#ccc;'>".$campo['subLabel']."</span>";
+											$subLabel = " <span style='font-size: 10px; font-weight: 100; color:#666;'>".$campo['subLabel']."</span>";
 									
 										echo "<label class='control-label' for='id".$campo['name']."'>".$campo['label']."".@$subLabel."</label>";
 										echo $this->formGeraElemento($campo,$value_text,$primeiroBranco);
@@ -411,6 +417,8 @@ Class CrudBootstrap{
 					
 					$reltemp = $this->getColumnCRUDInfoMulti($campo['idFilhos'],$campo['tableRel'],$campo['idPai'],$id);
 					
+					
+					$ret=array();
 					echo "<p><b>".$campo['label'].":</b></p>";
 					foreach($relNames as $r)
 					{
@@ -781,6 +789,11 @@ Class CrudBootstrap{
 	
 	}
 	
+	public function setLimit($limit = 'LIMIT 0,10')
+	{
+		$this->limit = $limit;
+	}
+	
 	public function setOrderby($order = '',$type='DESC')
 	{
 		$this->Orderby = "ORDER BY ".$order." ".$type;
@@ -834,6 +847,12 @@ Class CrudBootstrap{
 			
 		if ($this->paginar)
 			$sql = $sql.$this->paginarQuery;
+		else
+		{
+			if ($this->limit != '')
+				$sql = $sql." ".$this->limit;
+		}
+			
 		
 		//echo $sql; 
 		
@@ -1567,9 +1586,9 @@ Class CrudBootstrap{
 			return '';
 	}
 	
-	public function getCRUDInfo($table,$id)
+	public function getCRUDInfo($table,$id,$col="*",$search='id')
 	{
-		$sql = "SELECT * FROM ".$table." WHERE id = ".$id.";";
+		$sql = "SELECT ".$col." FROM ".$table." WHERE ".$search." = ".$id.";";
 		$res = $this->bdconn->select($sql);
 		return $res[0];
 	}
