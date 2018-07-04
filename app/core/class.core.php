@@ -17,6 +17,7 @@ Class Core{
 	
 	//chamar nas outras como core::$system_path; e core::$session
 	public static $system_path;
+	public static $path;
 	public static $session;
 	public static $html;
 	
@@ -49,6 +50,7 @@ Class Core{
 		$basedirHTML = $this->config->config['protocolo']."://".$_SERVER['HTTP_HOST'].$this->config->config['systemFolder'];
 		//$this->system_path = $basedirHTML;
 		self::$system_path = $basedirHTML;
+		self::$path = $basedirHTML;
 	}
 	
 	public function conectaBD()
